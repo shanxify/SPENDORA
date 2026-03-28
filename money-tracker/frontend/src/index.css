@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-primary: #0A0A0F;
+    --bg-secondary: #111118;
+    --bg-card: #16161F;
+    --bg-hover: #1C1C28;
+    
+    /* Accents */
+    --accent: #7C6FCD;
+    --accent-light: #9D93D8;
+    --accent-glow: rgba(124, 111, 205, 0.15);
+    
+    /* Status colors */
+    --success: #22C55E;
+    --success-bg: rgba(34, 197, 94, 0.1);
+    --danger: #EF4444;
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    --warning: #F59E0B;
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    
+    /* Text */
+    --text-primary: #F0F0F8;
+    --text-secondary: #A0A0B8;
+    --text-muted: #606080;
+    
+    /* Borders */
+    --border: #22222E;
+    --border-light: #2A2A3A;
+  }
+
+  body {
+    @apply bg-primary-bg text-text-primary font-sans antialiased;
+    background-color: var(--bg-primary);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-syne;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-accent text-white rounded-lg font-medium tracking-wide transition-all 
+      hover:bg-accent-light hover:shadow-[0_0_15px_var(--accent-glow)] active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-secondary-bg border border-border text-text-primary rounded-lg font-medium 
+      transition-all hover:border-accent hover:text-accent-light active:scale-95;
+  }
+  
+  .input-field {
+    @apply w-full bg-secondary-bg border border-border rounded-lg px-4 py-2 text-text-primary 
+      focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted;
+  }
+  
+  .glass-panel {
+    @apply bg-card border border-border rounded-2xl backdrop-blur-md;
+  }
+}
+
+/* Custom Scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted); 
+}
