@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import Client from '../api/client';
@@ -9,63 +9,86 @@ import FilterPanel from '../components/Transactions/FilterPanel';
 
 const Transactions = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  
   const [transactions, setTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const LIMIT = 20;
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedType, setSelectedType] = useState(searchParams.get('type') || '');
+  const [dateFrom, setDateFrom] = useState(searchParams.get('from') || '');
+  const [dateTo, setDateTo] = useState(searchParams.get('to') || '');
+
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
-  
-  const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    category: searchParams.get('category') || '',
-    type: searchParams.get('type') || 'all',
-    from: searchParams.get('from') || '',
-    to: searchParams.get('to') || '',
-    page: parseInt(searchParams.get('page') || '1'),
-    limit: 50
-  });
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    Client.getCategories().then(setCategories).catch(console.error);
+  }, []);
+
+  // Reset to page 1 when any filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
+
+  // Fetch whenever page or filters change
+  useEffect(() => {
+    fetchTransactions();
+  }, [currentPage, searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
+
+  const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const [{ transactions: txs, total: t }, cats] = await Promise.all([
-        Client.getTransactions(filters),
-        Client.getCategories()
-      ]);
-      setTransactions(txs);
-      setTotal(t);
-      setCategories(cats);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+      const params = {
+        page: currentPage,
+        limit: LIMIT,
+      };
+      if (searchTerm) params.search = searchTerm;
+      if (selectedCategory && selectedCategory !== 'All Categories') params.category = selectedCategory;
+      if (selectedType && selectedType !== 'All Types') params.type = selectedType;
+      if (dateFrom) params.from = dateFrom;
+      if (dateTo) params.to = dateTo;
+
+      // Update URL params
+      const urlParams = new URLSearchParams();
+      if (params.search) urlParams.set('search', params.search);
+      if (params.category) urlParams.set('category', params.category);
+      if (params.type) urlParams.set('type', params.type);
+      if (params.from) urlParams.set('from', params.from);
+      if (params.to) urlParams.set('to', params.to);
+      urlParams.set('page', params.page);
+      setSearchParams(urlParams);
+
+      const response = await axios.get('http://localhost:5001/api/transactions', { params });
+
+      // Use response.data.data NOT response.data directly
+      setTransactions(response.data.data);
+      setTotalPages(response.data.totalPages);
+      setTotalCount(response.data.total);
+      setCurrentPage(response.data.page);
+    } catch (err) {
+      console.error('Failed to fetch transactions:', err);
     } finally {
       setLoading(false);
     }
-  }, [filters]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  };
 
   const handleFilterChange = (newFilters) => {
-    setFilters(prev => {
-      const updated = { ...prev, ...newFilters, page: 1 };
-      
-      // Update URL params
-      const params = new URLSearchParams();
-      if (updated.search) params.set('search', updated.search);
-      if (updated.category) params.set('category', updated.category);
-      if (updated.type !== 'all') params.set('type', updated.type);
-      if (updated.from) params.set('from', updated.from);
-      if (updated.to) params.set('to', updated.to);
-      setSearchParams(params);
-      
-      return updated;
-    });
+    if ('search' in newFilters) setSearchTerm(newFilters.search);
+    if ('category' in newFilters) setSelectedCategory(newFilters.category);
+    if ('type' in newFilters) setSelectedType(newFilters.type);
+    if ('from' in newFilters) setDateFrom(newFilters.from);
+    if ('to' in newFilters) setDateTo(newFilters.to);
   };
 
   const handleSearchChange = (value) => {
-    handleFilterChange({ search: value });
+    setSearchTerm(value);
   };
 
   const handleUpdateCategory = async (id, categoryName) => {
@@ -82,10 +105,10 @@ const Transactions = () => {
     try {
       await axios.delete('http://localhost:5001/api/transactions/clear');
       setTransactions([]);
-      setTotal(0);
+      setTotalCount(0);
       setShowClearConfirm(false);
       alert('All transactions cleared! You can now upload a fresh PDF.');
-      fetchData();
+      fetchTransactions();
     } catch (err) {
       alert('Failed to clear transactions: ' + err.message);
     } finally {
@@ -97,11 +120,19 @@ const Transactions = () => {
     if (window.confirm('Delete this transaction?')) {
       try {
         await Client.deleteTransaction(id);
-        fetchData();
+        fetchTransactions();
       } catch (error) {
         console.error("Failed to delete transaction:", error);
       }
     }
+  };
+
+  const uiFilters = {
+    search: searchTerm,
+    category: selectedCategory,
+    type: selectedType,
+    from: dateFrom,
+    to: dateTo
   };
 
   return (
@@ -115,7 +146,7 @@ const Transactions = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div>
             <h1 className="text-2xl font-bold text-text">Transactions</h1>
-            <p className="text-text-muted">{total} transactions found</p>
+            <p className="text-text-muted">{totalCount} transactions found</p>
           </div>
           <button
             onClick={() => setShowClearConfirm(true)}
@@ -138,43 +169,76 @@ const Transactions = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-md">
-          <SearchBar value={filters.search} onChange={handleSearchChange} />
+          <SearchBar value={searchTerm} onChange={handleSearchChange} />
           <FilterPanel 
             categories={categories} 
-            filters={filters} 
+            filters={uiFilters} 
             onFilterChange={handleFilterChange} 
           />
         </div>
 
-        <TransactionTable 
-          transactions={transactions}
-          categories={categories}
-          onUpdateCategory={handleUpdateCategory}
-          onDelete={handleDelete}
-          loading={loading}
-        />
-
-        {total > filters.limit && (
-          <div className="flex justify-between items-center bg-card p-4 rounded-xl border border-border">
-            <button 
-              className="btn-secondary"
-              disabled={filters.page === 1}
-              onClick={() => handleFilterChange({ page: filters.page - 1 })}
-            >
-              Previous
-            </button>
-            <span className="text-text-muted">
-              Page {filters.page} of {Math.ceil(total / filters.limit)}
-            </span>
-            <button 
-              className="btn-secondary"
-              disabled={filters.page >= Math.ceil(total / filters.limit)}
-              onClick={() => handleFilterChange({ page: filters.page + 1 })}
-            >
-              Next
-            </button>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0B8' }}>
+            Loading...
           </div>
+        ) : (
+          <TransactionTable 
+            transactions={transactions}
+            categories={categories}
+            onUpdateCategory={handleUpdateCategory}
+            onDelete={handleDelete}
+            loading={loading}
+          />
         )}
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px 24px',
+          borderTop: '1px solid #2A2A3E'
+        }}>
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1 || loading}
+            style={{
+              padding: '8px 20px',
+              backgroundColor: currentPage === 1 ? 'transparent' : '#6C63FF',
+              color: currentPage === 1 ? '#606080' : 'white',
+              border: `1px solid ${currentPage === 1 ? '#2A2A3E' : '#6C63FF'}`,
+              borderRadius: '8px',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              opacity: currentPage === 1 ? 0.5 : 1,
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            ← Previous
+          </button>
+
+          <span style={{ color: '#A0A0B8', fontSize: '14px' }}>
+            Page {currentPage} of {totalPages} &nbsp;|&nbsp; {totalCount} transactions
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages || totalPages === 0 || loading}
+            style={{
+              padding: '8px 20px',
+              backgroundColor: currentPage === totalPages ? 'transparent' : '#6C63FF',
+              color: currentPage === totalPages ? '#606080' : 'white',
+              border: `1px solid ${currentPage === totalPages ? '#2A2A3E' : '#6C63FF'}`,
+              borderRadius: '8px',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              opacity: currentPage === totalPages ? 0.5 : 1,
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            Next →
+          </button>
+        </div>
+
         {showClearConfirm && (
           <div style={{
             position: 'fixed',

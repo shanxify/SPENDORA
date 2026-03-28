@@ -5,22 +5,21 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   try {
-    const { 
-      search, category, from, to, type, 
-      sort = 'date', order = 'desc', page = 1, limit = 20 
-    } = req.query;
-
     let transactions = readData(TRANSACTIONS_FILE);
 
+    const { search, category, type, from, to, page = 1, limit = 20 } = req.query;
+
+    // Apply filters first
     if (search) {
-      const s = search.toLowerCase();
-      transactions = transactions.filter(t => 
-        t.merchant.toLowerCase().includes(s) || 
-        t.normalizedMerchant.toLowerCase().includes(s)
+      transactions = transactions.filter(t =>
+        t.merchant.toLowerCase().includes(search.toLowerCase())
       );
     }
-    if (category) {
+    if (category && category !== 'All Categories' && category !== 'all') {
       transactions = transactions.filter(t => t.category === category);
+    }
+    if (type && type !== 'All Types' && type !== 'all') {
+      transactions = transactions.filter(t => t.type === type.toLowerCase());
     }
     if (from) {
       transactions = transactions.filter(t => t.date >= from);
@@ -28,43 +27,29 @@ router.get('/', (req, res) => {
     if (to) {
       transactions = transactions.filter(t => t.date <= to);
     }
-    if (type && type !== 'all') {
-      transactions = transactions.filter(t => t.type === type);
-    }
 
-    // Sorting
-    transactions.sort((a, b) => {
-      let valA = a[sort];
-      let valB = b[sort];
-      
-      if (sort === 'amount') {
-        valA = Number(valA);
-        valB = Number(valB);
-      }
-      
-      if (valA < valB) return order === 'asc' ? -1 : 1;
-      if (valA > valB) return order === 'asc' ? 1 : -1;
-      return 0;
-    });
+    // Sort by date descending (newest first)
+    transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // Pagination
-    const total = transactions.length;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const pages = Math.ceil(total / limitNum);
-    const start = (pageNum - 1) * limitNum;
-    
-    const paginated = transactions.slice(start, start + limitNum);
+    // Pagination AFTER filtering
+    const totalCount = transactions.length;
+    const currentPage = parseInt(page);
+    const pageLimit = parseInt(limit);
+    const totalPages = Math.ceil(totalCount / pageLimit);
+    const start = (currentPage - 1) * pageLimit;
+    const end = start + pageLimit;
+    const paginatedData = transactions.slice(start, end);
 
     res.json({
-      transactions: paginated,
-      total,
-      page: pageNum,
-      pages
+      data: paginatedData,
+      total: totalCount,
+      page: currentPage,
+      totalPages: totalPages,
+      limit: pageLimit
     });
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
