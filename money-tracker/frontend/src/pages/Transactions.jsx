@@ -12,8 +12,7 @@ const Transactions = () => {
   
   const [transactions, setTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  // totalPages and totalCount are now derived from filteredTransactions
   const [loading, setLoading] = useState(false);
   const LIMIT = 20;
 
@@ -37,17 +36,17 @@ const Transactions = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
 
-  // Fetch whenever page or filters change
+  // Fetch whenever filters change (client handles pagination)
   useEffect(() => {
     fetchTransactions();
-  }, [currentPage, searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
+  }, [searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
       const params = {
-        page: currentPage,
-        limit: LIMIT,
+        page: 1,
+        limit: 100000,
       };
       if (searchTerm) params.search = searchTerm;
       if (selectedCategory && selectedCategory !== 'All Categories') params.category = selectedCategory;
@@ -69,9 +68,7 @@ const Transactions = () => {
 
       // Use response.data.data NOT response.data directly
       setTransactions(response.data.data);
-      setTotalPages(response.data.totalPages);
-      setTotalCount(response.data.total);
-      setCurrentPage(response.data.page);
+      // Total pages and count are now calculated from filteredTransactions
     } catch (err) {
       console.error('Failed to fetch transactions:', err);
     } finally {
@@ -105,7 +102,6 @@ const Transactions = () => {
     try {
       await axios.delete('http://localhost:5001/api/transactions/clear');
       setTransactions([]);
-      setTotalCount(0);
       setShowClearConfirm(false);
       alert('All transactions cleared! You can now upload a fresh PDF.');
       fetchTransactions();
@@ -135,6 +131,60 @@ const Transactions = () => {
     to: dateTo
   };
 
+  const filteredTransactions = transactions.filter((txn) => {
+    // Convert transaction date
+    const txnDate = new Date(txn.date);
+
+    // Convert filter dates
+    const from = dateFrom ? new Date(dateFrom) : null;
+    const to = dateTo ? new Date(dateTo) : null;
+
+    // 🔥 IMPORTANT FIX: Normalize time
+    txnDate.setHours(0, 0, 0, 0);
+
+    if (from) {
+      from.setHours(0, 0, 0, 0);
+      if (txnDate < from) return false;
+    }
+
+    if (to) {
+      to.setHours(23, 59, 59, 999);
+      if (txnDate > to) return false;
+    }
+
+    // Category filter (keep existing logic intact)
+    if (selectedCategory && selectedCategory !== "All Categories") {
+      if (txn.category !== selectedCategory) return false;
+    }
+
+    // Type filter (keep existing logic intact)
+    if (selectedType && selectedType !== "All Types") {
+      if ((txn.type || "").toLowerCase() !== selectedType.toLowerCase()) return false;
+    }
+
+    return true;
+  });
+
+  const itemsPerPage = LIMIT;
+  const computedTotalPages = Math.ceil(filteredTransactions.length / itemsPerPage) || 1;
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const isFilterActive =
+    dateFrom ||
+    dateTo ||
+    (selectedCategory && selectedCategory !== "All Categories") ||
+    (selectedType && selectedType !== "All Types");
+
+  const totalAmount = filteredTransactions.reduce((sum, txn) => {
+    const amt = parseFloat(txn.amount) || 0;
+    return (txn.type || "").toUpperCase() === "CREDIT"
+      ? sum + amt
+      : sum - amt;
+  }, 0);
+
   return (
     <div className="min-h-full bg-primary-bg pb-10 flex flex-col">
       <TopNav 
@@ -146,7 +196,7 @@ const Transactions = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div>
             <h1 className="text-2xl font-bold text-text">Transactions</h1>
-            <p className="text-text-muted">{totalCount} transactions found</p>
+            <p className="text-text-muted">{filteredTransactions.length} transactions found</p>
           </div>
           <button
             onClick={() => setShowClearConfirm(true)}
@@ -177,13 +227,23 @@ const Transactions = () => {
           />
         </div>
 
+        {isFilterActive && (
+          <div className="text-right text-sm text-gray-400 mb-2">
+            Filtered Total: ₹{totalAmount}
+          </div>
+        )}
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0B8' }}>
             Loading...
           </div>
+        ) : filteredTransactions.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0B8', fontSize: '16px' }}>
+            No transactions found
+          </div>
         ) : (
           <TransactionTable 
-            transactions={transactions}
+            transactions={paginatedTransactions}
             categories={categories}
             onUpdateCategory={handleUpdateCategory}
             onDelete={handleDelete}
@@ -200,15 +260,15 @@ const Transactions = () => {
         }}>
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1 || loading}
+            disabled={currentPage === 1 || loading || filteredTransactions.length === 0}
             style={{
               padding: '8px 20px',
-              backgroundColor: currentPage === 1 ? 'transparent' : '#6C63FF',
-              color: currentPage === 1 ? '#606080' : 'white',
-              border: `1px solid ${currentPage === 1 ? '#2A2A3E' : '#6C63FF'}`,
+              backgroundColor: (currentPage === 1 || filteredTransactions.length === 0) ? 'transparent' : '#6C63FF',
+              color: (currentPage === 1 || filteredTransactions.length === 0) ? '#606080' : 'white',
+              border: `1px solid ${(currentPage === 1 || filteredTransactions.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
               borderRadius: '8px',
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              opacity: currentPage === 1 ? 0.5 : 1,
+              cursor: (currentPage === 1 || filteredTransactions.length === 0) ? 'not-allowed' : 'pointer',
+              opacity: (currentPage === 1 || filteredTransactions.length === 0) ? 0.5 : 1,
               fontSize: '14px',
               fontWeight: '500'
             }}
@@ -217,20 +277,20 @@ const Transactions = () => {
           </button>
 
           <span style={{ color: '#A0A0B8', fontSize: '14px' }}>
-            Page {currentPage} of {totalPages} &nbsp;|&nbsp; {totalCount} transactions
+            Page {currentPage} of {computedTotalPages} &nbsp;|&nbsp; {filteredTransactions.length} transactions
           </span>
 
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages || totalPages === 0 || loading}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, computedTotalPages))}
+            disabled={currentPage === computedTotalPages || computedTotalPages === 0 || loading || filteredTransactions.length === 0}
             style={{
               padding: '8px 20px',
-              backgroundColor: currentPage === totalPages ? 'transparent' : '#6C63FF',
-              color: currentPage === totalPages ? '#606080' : 'white',
-              border: `1px solid ${currentPage === totalPages ? '#2A2A3E' : '#6C63FF'}`,
+              backgroundColor: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 'transparent' : '#6C63FF',
+              color: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? '#606080' : 'white',
+              border: `1px solid ${(currentPage === computedTotalPages || filteredTransactions.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
               borderRadius: '8px',
-              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-              opacity: currentPage === totalPages ? 0.5 : 1,
+              cursor: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 'not-allowed' : 'pointer',
+              opacity: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 0.5 : 1,
               fontSize: '14px',
               fontWeight: '500'
             }}

@@ -4,18 +4,15 @@ const { readData, writeData, TRANSACTIONS_FILE } = require('../utils/fileStore')
 const router = express.Router();
 
 function parseCustomDate(dateStr) {
-  if (!dateStr) return new Date(0);
-  // Example: "26 Mar 2026"
-  if (dateStr.includes(" ")) {
-    const [day, monthStr, year] = dateStr.split(" ");
-    const monthMap = {
-      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-    };
-    return new Date(year, monthMap[monthStr], parseInt(day));
-  }
-  // Safe fallback for standard dates like "2026-03-24"
-  return new Date(dateStr + 'T00:00:00');
+  // Example: "Mar 10, 2026"
+  const parsed = new Date(dateStr);
+
+  // Normalize time to 00:00:00
+  return new Date(
+    parsed.getFullYear(),
+    parsed.getMonth(),
+    parsed.getDate()
+  );
 }
 
 router.get('/', (req, res) => {
@@ -37,19 +34,28 @@ router.get('/', (req, res) => {
       transactions = transactions.filter(t => t.type === type.toLowerCase());
     }
 
-    // FIXED DATE FILTER
     if (fromDate && toDate) {
       const from = new Date(fromDate);
       const to = new Date(toDate);
 
-      transactions = transactions.filter(t => {
-        const txDate = parseCustomDate(t.date);
+      // CRITICAL: align time offsets for fair boundary tests locally
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+
+      transactions = transactions.filter(tx => {
+        const txDate = parseCustomDate(tx.date);
         return txDate >= from && txDate <= to;
       });
+      
+      console.log("FROM:", from.toISOString());
+      console.log("TO:", to.toISOString());
+      console.log("TOTAL AFTER FILTER:", transactions.length);
     }
 
     // SORT
-    transactions.sort((a, b) => parseCustomDate(b.date) - parseCustomDate(a.date));
+    transactions.sort((a, b) => {
+      return parseCustomDate(b.date) - parseCustomDate(a.date);
+    });
 
     // PAGINATION
     const totalCount = transactions.length;

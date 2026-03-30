@@ -17,6 +17,17 @@ const Dashboard = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
+  const [openingBalance, setOpeningBalance] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("openingBalance");
+    if (saved !== null) {
+      setOpeningBalance(Number(saved));
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,7 +66,7 @@ const Dashboard = () => {
 
     const expenses = debits.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
     const income = credits.reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
-    const net = income - expenses;
+    const net = (openingBalance || 0) + income - expenses;
 
     const totals = {
       expenses: Math.round(expenses * 100) / 100,
@@ -131,7 +142,7 @@ const Dashboard = () => {
       .slice(0, 5);
 
     return { totals, categoryBreakdown, monthlyData, topMerchants, recentTransactions };
-  }, [transactions, apiCategories]);
+  }, [transactions, apiCategories, openingBalance]);
 
   return (
     <div className="min-h-full bg-primary-bg pb-10">
@@ -207,12 +218,19 @@ const Dashboard = () => {
                 icon={ArrowUp}
                 colorClass={{ text: 'text-success', bg: 'bg-success/10', bgBar: 'bg-success/20', bgFill: 'bg-success/60' }}
               />
-              <StatCard 
-                title="Net Balance" 
-                amount={stats.totals.net} 
-                icon={Activity}
-                colorClass={{ text: 'text-accent', bg: 'bg-accent/10', bgBar: 'bg-accent/20', bgFill: 'bg-accent/60' }}
-              />
+              <div onClick={() => setShowModal(true)} className="cursor-pointer hover:scale-105 transition relative">
+                <StatCard 
+                  title="Net Balance" 
+                  amount={stats.totals.net} 
+                  icon={Activity}
+                  colorClass={{ text: 'text-accent', bg: 'bg-accent/10', bgBar: 'bg-accent/20', bgFill: 'bg-accent/60' }}
+                />
+                {openingBalance > 0 && (
+                  <p className="text-xs text-gray-400 mt-1 absolute bottom-2 left-6">
+                    Includes opening ₹{openingBalance}
+                  </p>
+                )}
+              </div>
               <StatCard 
                 title="Transactions" 
                 amount={stats.totals.transactionCount} 
@@ -255,6 +273,56 @@ const Dashboard = () => {
               </div>
             </div>
           </>
+        )}
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className="bg-[#1e1e2f] p-6 rounded-xl w-80 shadow-lg">
+              <h2 className="text-white text-lg mb-2 font-semibold">
+                Enter Opening Balance (Optional)
+              </h2>
+              <p className="text-gray-400 text-sm mb-4">
+                Add opening balance only if needed
+              </p>
+              <input
+                type="number"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full p-2 rounded bg-[#2a2a40] text-white mb-4 outline-none"
+              />
+              <div className="flex justify-between">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-gray-500 rounded text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const val = Number(inputValue) || 0;
+                    setOpeningBalance(val);
+                    localStorage.setItem("openingBalance", val);
+                    setShowModal(false);
+                  }}
+                  className="px-4 py-2 bg-purple-600 rounded text-white"
+                >
+                  Save
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  setOpeningBalance(0);
+                  localStorage.removeItem("openingBalance");
+                  setInputValue("");
+                  setShowModal(false);
+                }}
+                className="mt-4 w-full text-red-400 text-sm"
+              >
+                Clear Opening Balance
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
