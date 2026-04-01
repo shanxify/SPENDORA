@@ -6,6 +6,7 @@ import TopNav from '../components/Layout/TopNav';
 import TransactionTable from '../components/Transactions/TransactionTable';
 import SearchBar from '../components/Transactions/SearchBar';
 import FilterPanel from '../components/Transactions/FilterPanel';
+import GlareHover from '../components/GlareHover';
 
 const Transactions = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -188,37 +189,12 @@ const Transactions = () => {
   return (
     <div className="min-h-full bg-primary-bg pb-10 flex flex-col">
       <TopNav 
-        title="Transactions" 
-        meta=""
+        title="Transactions"
+        meta="Manage and track your transactions"
       />
       
-      <div className="p-8 max-w-7xl mx-auto w-full space-y-6 flex-1 flex flex-col animate-in fade-in duration-300">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <div>
-            <h1 className="text-2xl font-bold text-text">Transactions</h1>
-            <p className="text-text-muted">{filteredTransactions.length} transactions found</p>
-          </div>
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            style={{
-              backgroundColor: '#EF4444',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            🗑️ Clear All Transactions
-          </button>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-md">
+      <div className="px-6 lg:px-10 py-6 space-y-6 max-w-7xl mx-auto w-full flex-1 flex flex-col animate-in fade-in duration-300">
+        <div className="mt-4 flex flex-col lg:flex-row gap-4 items-center justify-between bg-[#0c0c14] border border-white/10 p-4 rounded-2xl shadow-md">
           <SearchBar value={searchTerm} onChange={handleSearchChange} />
           <FilterPanel 
             categories={categories} 
@@ -251,13 +227,7 @@ const Transactions = () => {
           />
         )}
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 24px',
-          borderTop: '1px solid #2A2A3E'
-        }}>
+        <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1 || loading || filteredTransactions.length === 0}
@@ -296,6 +266,15 @@ const Transactions = () => {
             }}
           >
             Next →
+          </button>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition"
+          >
+            Clear All Transactions
           </button>
         </div>
 

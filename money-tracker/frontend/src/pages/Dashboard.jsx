@@ -7,6 +7,8 @@ import CategoryBreakdown from '../components/Dashboard/CategoryBreakdown';
 import MonthlySummary from '../components/Dashboard/MonthlySummary';
 import SpendingPieChart from '../components/Charts/SpendingPieChart';
 import MonthlyBarChart from '../components/Charts/MonthlyBarChart';
+import BorderGlow from '../components/BorderGlow';
+import GlareHover from '../components/GlareHover';
 
 const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
@@ -87,15 +89,35 @@ const Dashboard = () => {
     let grandTotal = 0;
     Object.values(breakdown).forEach(c => grandTotal += c.total);
 
-    const categoryBreakdown = Object.values(breakdown).map(cat => {
+    const FALLBACK_COLORS = [
+      '#FF6B6B', '#FECB5A', '#4ECDC4', '#C7F464', 
+      '#81D4FA', '#B39DDB', '#FFAB91', '#A5D6A7', 
+      '#F48FB1', '#80CBC4', '#9FA8DA', '#FFCC80',
+      '#FF8A65', '#4DB6AC', '#BA68C8', '#AED581'
+    ];
+    const usedColors = new Set();
+    
+    // Sort first so largest categories get colors assigned first
+    const sortedCategories = Object.values(breakdown).sort((a, b) => b.total - a.total);
+    
+    const categoryBreakdown = sortedCategories.map((cat, index) => {
       const dbCat = apiCategories.find(c => c.name === cat.name);
+      let color = dbCat ? dbCat.color : null;
+      
+      // If no color, default gray, or already used -> pull from premium palette
+      if (!color || color === '#95A5A6' || usedColors.has(color)) {
+        color = FALLBACK_COLORS.find(c => !usedColors.has(c)) || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+      }
+      
+      usedColors.add(color);
+
       return {
         ...cat,
         total: Math.round(cat.total * 100) / 100,
         percentage: grandTotal > 0 ? ((cat.total / grandTotal) * 100).toFixed(1) : "0",
-        color: dbCat ? dbCat.color : '#95A5A6'
+        color
       };
-    }).sort((a, b) => b.total - a.total);
+    });
 
     // Monthly Data
     const monthly = {};
@@ -147,16 +169,30 @@ const Dashboard = () => {
   return (
     <div className="min-h-full bg-primary-bg pb-10">
       <TopNav 
-        title="Dashboard" 
+        title="Dashboard"
         meta={`Last updated: ${new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
         actions={
-          <button onClick={fetchData} className="btn-secondary text-sm">
-            Refresh
-          </button>
+          <GlareHover
+            background="transparent"
+            borderRadius="8px"
+            borderColor="#2A2A3E"
+            glareColor="#ffffff"
+            glareOpacity={0.2}
+            glareAngle={-30}
+            glareSize={200}
+            transitionDuration={600}
+            width="auto"
+            height="auto"
+            style={{ width: 'auto', height: 'auto' }}
+          >
+            <button onClick={fetchData} className="btn-secondary text-sm">
+              Refresh
+            </button>
+          </GlareHover>
         }
       />
       
-      <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
         
         {/* DATE RANGE FILTER */}
         <div className="glass-panel p-4 flex flex-wrap gap-4 items-end border-border-light shadow-xl shadow-black/50">
@@ -206,58 +242,168 @@ const Dashboard = () => {
           <>
             {/* STAT CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard 
-                title="Total Expenses" 
-                amount={stats.totals.expenses} 
-                icon={ArrowDown}
-                colorClass={{ text: 'text-danger', bg: 'bg-danger/10', bgBar: 'bg-danger/20', bgFill: 'bg-danger/60' }}
-              />
-              <StatCard 
-                title="Total Income" 
-                amount={stats.totals.income} 
-                icon={ArrowUp}
-                colorClass={{ text: 'text-success', bg: 'bg-success/10', bgBar: 'bg-success/20', bgFill: 'bg-success/60' }}
-              />
-              <div onClick={() => setShowModal(true)} className="cursor-pointer hover:scale-105 transition relative">
-                <StatCard 
-                  title="Net Balance" 
-                  amount={stats.totals.net} 
-                  icon={Activity}
-                  colorClass={{ text: 'text-accent', bg: 'bg-accent/10', bgBar: 'bg-accent/20', bgFill: 'bg-accent/60' }}
-                />
-                {openingBalance > 0 && (
-                  <p className="text-xs text-gray-400 mt-1 absolute bottom-2 left-6">
-                    Includes opening ₹{openingBalance}
-                  </p>
-                )}
-              </div>
-              <StatCard 
-                title="Transactions" 
-                amount={stats.totals.transactionCount} 
-                icon={Hash}
-                colorClass={{ text: 'text-text-primary', bg: 'bg-secondary-bg', bgBar: 'bg-border', bgFill: 'bg-text-muted' }}
-              />
+              <BorderGlow
+                className="h-[140px] w-full"
+                edgeSensitivity={30}
+                glowColor="270 80 70"
+                backgroundColor="#0c0c14"
+                borderRadius={20}
+                glowRadius={30}
+                glowIntensity={0.6}
+                coneSpread={20}
+                animated={false}
+                colors={['#7c3aed']}
+              >
+                <GlareHover
+                  className="rounded-[20px]"
+                  width="100%"
+                  height="100%"
+                  background="transparent"
+                  borderColor="transparent"
+                  glareColor="#ffffff"
+                  glareOpacity={0.1}
+                  glareSize={200}
+                  transitionDuration={500}
+                >
+                  <div className="p-5 h-full">
+                    <StatCard 
+                      title="Total Expenses" 
+                      amount={stats.totals.expenses} 
+                      icon={ArrowDown}
+                      colorClass={{ text: 'text-danger', bg: 'bg-danger/10', bgBar: 'bg-danger/20', bgFill: 'bg-danger/60' }}
+                    />
+                  </div>
+                </GlareHover>
+              </BorderGlow>
+
+              <BorderGlow
+                className="h-[140px] w-full"
+                edgeSensitivity={30}
+                glowColor="270 80 70"
+                backgroundColor="#0c0c14"
+                borderRadius={20}
+                glowRadius={30}
+                glowIntensity={0.6}
+                coneSpread={20}
+                animated={false}
+                colors={['#7c3aed']}
+              >
+                <GlareHover
+                  className="rounded-[20px]"
+                  width="100%"
+                  height="100%"
+                  background="transparent"
+                  borderColor="transparent"
+                  glareColor="#ffffff"
+                  glareOpacity={0.1}
+                  glareSize={200}
+                  transitionDuration={500}
+                >
+                  <div className="p-5 h-full">
+                    <StatCard 
+                      title="Total Income" 
+                      amount={stats.totals.income} 
+                      icon={ArrowUp}
+                      colorClass={{ text: 'text-success', bg: 'bg-success/10', bgBar: 'bg-success/20', bgFill: 'bg-success/60' }}
+                    />
+                  </div>
+                </GlareHover>
+              </BorderGlow>
+
+              <BorderGlow
+                className="h-[140px] w-full"
+                edgeSensitivity={30}
+                glowColor="270 80 70"
+                backgroundColor="#0c0c14"
+                borderRadius={20}
+                glowRadius={30}
+                glowIntensity={0.6}
+                coneSpread={20}
+                animated={false}
+                colors={['#7c3aed']}
+              >
+                <GlareHover
+                  className="rounded-[20px]"
+                  width="100%"
+                  height="100%"
+                  background="transparent"
+                  borderColor="transparent"
+                  glareColor="#ffffff"
+                  glareOpacity={0.1}
+                  glareSize={200}
+                  transitionDuration={500}
+                >
+                  <div 
+                    onClick={() => setShowModal(true)} 
+                    className="p-5 h-full cursor-pointer hover:opacity-80 transition relative"
+                  >
+                    <StatCard 
+                      title="Net Balance" 
+                      amount={stats.totals.net} 
+                      icon={Activity}
+                      colorClass={{ text: 'text-accent', bg: 'bg-accent/10', bgBar: 'bg-accent/20', bgFill: 'bg-accent/60' }}
+                      subtext={openingBalance > 0 ? `Includes opening ₹${openingBalance}` : undefined}
+                      hideBar={true}
+                    />
+                  </div>
+                </GlareHover>
+              </BorderGlow>
+
+              <BorderGlow
+                className="h-[140px] w-full"
+                edgeSensitivity={30}
+                glowColor="270 80 70"
+                backgroundColor="#0c0c14"
+                borderRadius={20}
+                glowRadius={30}
+                glowIntensity={0.6}
+                coneSpread={20}
+                animated={false}
+                colors={['#7c3aed']}
+              >
+                <GlareHover
+                  className="rounded-[20px]"
+                  width="100%"
+                  height="100%"
+                  background="transparent"
+                  borderColor="transparent"
+                  glareColor="#ffffff"
+                  glareOpacity={0.1}
+                  glareSize={200}
+                  transitionDuration={500}
+                >
+                  <div className="p-5 h-full">
+                    <StatCard 
+                      title="Transactions" 
+                      amount={stats.totals.transactionCount} 
+                      icon={Hash}
+                      colorClass={{ text: 'text-white/70', bg: 'bg-white/10', bgBar: 'bg-white/5', bgFill: 'bg-white/30' }}
+                      hideBar={true}
+                    />
+                  </div>
+                </GlareHover>
+              </BorderGlow>
             </div>
 
             {/* CHARTS */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-              <div className="glass-panel p-6 flex flex-col h-full lg:col-span-1 border-border-light shadow-xl shadow-black/50">
-                <h3 className="text-lg font-syne font-bold text-text-primary mb-6">Spending Distribution</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-full lg:col-span-1 shadow-md">
+                <h3 className="text-lg font-medium text-white mb-6">Spending Distribution</h3>
                 <div className="flex-1 min-h-[250px]">
                   {transactions.length > 0 && stats.categoryBreakdown.length > 0 ? (
                     <SpendingPieChart data={stats.categoryBreakdown} />
                   ) : (
-             <div className="h-full flex items-center justify-center text-text-muted font-medium">No valid expenses</div>
+             <div className="h-full flex items-center justify-center text-gray-500 font-medium">No valid expenses</div>
                   )}
                 </div>
               </div>
-              <div className="glass-panel p-6 flex flex-col h-full lg:col-span-2 border-border-light shadow-xl shadow-black/50">
-                <h3 className="text-lg font-syne font-bold text-text-primary mb-2">Monthly Cashflow</h3>
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-full lg:col-span-2 shadow-md">
+                <h3 className="text-lg font-medium text-white mb-2">Monthly Cashflow</h3>
                 <div className="flex-1 min-h-[250px]">
                   {transactions.length > 0 && stats.monthlyData.length > 0 ? (
                     <MonthlyBarChart data={stats.monthlyData} />
                   ) : (
-                    <div className="h-full flex items-center justify-center text-text-muted font-medium">No valid transaction data</div>
+                    <div className="h-full flex items-center justify-center text-gray-500 font-medium">No valid transaction data</div>
                   )}
                 </div>
               </div>
@@ -265,10 +411,10 @@ const Dashboard = () => {
 
             {/* LISTS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
-              <div className="glass-panel p-6 overflow-hidden flex flex-col h-full">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
                 <CategoryBreakdown categories={stats.categoryBreakdown} />
               </div>
-              <div className="glass-panel p-6 overflow-hidden flex flex-col h-full">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
                 <MonthlySummary recentTransactions={stats.recentTransactions} />
               </div>
             </div>
