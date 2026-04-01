@@ -11,34 +11,12 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "frontend/static/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "frontend/favicon.ico"
-    },
-    {
-      "src": "/logo192.png",
-      "dest": "frontend/logo192.png"
-    },
-    {
-      "src": "/logo512.png",
-      "dest": "frontend/logo512.png"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "frontend/manifest.json"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "frontend/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/backend/server.js" },
+    { "source": "/static/(.*)", "destination": "/frontend/static/$1" },
+    { "source": "/favicon.ico", "destination": "/frontend/favicon.ico" },
+    { "source": "/manifest.json", "destination": "/frontend/manifest.json" },
+    { "source": "/logo(.*)", "destination": "/frontend/logo$1" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
