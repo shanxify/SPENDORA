@@ -12,11 +12,13 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/backend/server.js" },
-    { "source": "/static/(.*)", "destination": "/frontend/static/$1" },
-    { "source": "/favicon.ico", "destination": "/frontend/favicon.ico" },
-    { "source": "/manifest.json", "destination": "/frontend/manifest.json" },
-    { "source": "/logo(.*)", "destination": "/frontend/logo$1" },
-    { "source": "/(.*)", "destination": "/frontend/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

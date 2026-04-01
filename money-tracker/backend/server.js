@@ -3,22 +3,11 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
-// Create required directories if they don't exist
-const dataDir = path.join(__dirname, 'data');
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-// Initialize empty data files if they don't exist
-['transactions.json', 'categories.json', 'merchantMap.json'].forEach(file => {
-  const filePath = path.join(dataDir, file);
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify([]));
-  }
-});
-
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Export app for Vercel serverless functions
+module.exports = app;
 
 // Middleware
 const allowedOrigins = [
@@ -53,6 +42,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`Money Tracker backend running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Money Tracker backend running on http://localhost:${PORT}`);
+  });
+}
