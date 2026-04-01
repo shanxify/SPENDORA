@@ -1,135 +1,86 @@
 const express = require('express');
-const { readData, writeData, TRANSACTIONS_FILE, MERCHANT_MAP_FILE } = require('../utils/fileStore');
+const supabase = require('../utils/supabaseClient');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { search, uncategorized } = req.query;
-    const transactions = readData(TRANSACTIONS_FILE);
-    
-    // Group transactions by normalized merchant
+
+    let query = supabase.from('transactions').select('merchant, normalizedMerchant, category, amount').eq('type', 'debit');
+    const { data: transactions, error } = await query;
+    if (error) throw error;
+
+    // Group by normalized merchant
     const merchantMap = {};
-    
-    transactions.forEach(t => {
-      // Only debits are considered for merchants usually
-      if (t.type !== 'debit') return;
-      
+    (transactions || []).forEach(t => {
       const key = t.normalizedMerchant;
-      
       if (!merchantMap[key]) {
-        merchantMap[key] = {
-          normalized: key,
-          display: t.merchant,
-          category: t.category,
-          count: 0,
-          totalSpend: 0
-        };
+        merchantMap[key] = { normalized: key, display: t.merchant, category: t.category, count: 0, totalSpend: 0 };
       }
-      
       merchantMap[key].count += 1;
-      merchantMap[key].totalSpend += t.amount;
+      merchantMap[key].totalSpend += parseFloat(t.amount) || 0;
     });
-    
+
     let result = Object.values(merchantMap);
-    
-    if (search) {
-      const s = search.toLowerCase();
-      result = result.filter(m => m.display.toLowerCase().includes(s));
-    }
-    
-    if (uncategorized === 'true') {
-      result = result.filter(m => m.category === 'Uncategorized');
-    }
-    
-    // Sort by count and then spend by default
-    result.sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      return b.totalSpend - a.totalSpend;
-    });
-    
-    // Round total spend for all
+
+    if (search) result = result.filter(m => m.display.toLowerCase().includes(search.toLowerCase()));
+    if (uncategorized === 'true') result = result.filter(m => m.category === 'Uncategorized');
+
+    result.sort((a, b) => b.count !== a.count ? b.count - a.count : b.totalSpend - a.totalSpend);
     result.forEach(r => r.totalSpend = Math.round(r.totalSpend * 100) / 100);
-    
+
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.put('/:normalized', (req, res) => {
+router.put('/bulk/assign', async (req, res) => {
   try {
-    const { normalized } = req.params;
-    const { category } = req.body;
-    
-    if (!category) return res.status(400).json({ error: 'Category is required' });
-    
-    // Update map
-    const map = readData(MERCHANT_MAP_FILE);
-    const existingIndex = map.findIndex(m => m.normalized === normalized);
-    
-    if (existingIndex >= 0) {
-      map[existingIndex].category = category;
-    } else {
-      map.push({ normalized, category });
+    const { merchants, category } = req.body;
+    if (!merchants || !Array.isArray(merchants) || !category) {
+      return res.status(400).json({ error: 'Valid merchants array and category are required' });
     }
-    writeData(MERCHANT_MAP_FILE, map);
-    
-    // Update transactions
-    const transactions = readData(TRANSACTIONS_FILE);
+
+    // Upsert merchant_map entries
+    const upserts = merchants.map(normalized => ({ normalized, category }));
+    await supabase.from('merchant_map').upsert(upserts, { onConflict: 'normalized' });
+
+    // Update all matching transactions
     let updatedCount = 0;
-    
-    transactions.forEach(t => {
-      if (t.normalizedMerchant === normalized) {
-        t.category = category;
-        updatedCount++;
-      }
-    });
-    
-    if (updatedCount > 0) writeData(TRANSACTIONS_FILE, transactions);
-    
-    res.json({ success: true, updatedTransactions: updatedCount });
+    for (const normalized of merchants) {
+      const { count } = await supabase
+        .from('transactions')
+        .update({ category })
+        .eq('normalizedMerchant', normalized);
+      updatedCount += count || 0;
+    }
+
+    res.json({ success: true, updatedMerchants: merchants.length, updatedTransactions: updatedCount });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.put('/bulk/assign', (req, res) => {
+router.put('/:normalized', async (req, res) => {
   try {
-    const { merchants, category } = req.body;
-    
-    if (!merchants || !Array.isArray(merchants) || !category) {
-      return res.status(400).json({ error: 'Valid merchants array and category are required' });
-    }
-    
-    const map = readData(MERCHANT_MAP_FILE);
-    let updatedMerchants = 0;
-    
-    merchants.forEach(normalized => {
-      const existingIndex = map.findIndex(m => m.normalized === normalized);
-      if (existingIndex >= 0) {
-        map[existingIndex].category = category;
-      } else {
-        map.push({ normalized, category });
-      }
-      updatedMerchants++;
-    });
-    
-    writeData(MERCHANT_MAP_FILE, map);
-    
-    const transactions = readData(TRANSACTIONS_FILE);
-    let updatedCount = 0;
-    
-    transactions.forEach(t => {
-      if (merchants.includes(t.normalizedMerchant)) {
-        t.category = category;
-        updatedCount++;
-      }
-    });
-    
-    if (updatedCount > 0) writeData(TRANSACTIONS_FILE, transactions);
-    
-    res.json({ success: true, updatedMerchants, updatedTransactions: updatedCount });
+    const { normalized } = req.params;
+    const { category } = req.body;
+    if (!category) return res.status(400).json({ error: 'Category is required' });
+
+    // Upsert merchant_map
+    await supabase.from('merchant_map').upsert({ normalized, category }, { onConflict: 'normalized' });
+
+    // Update transactions
+    const { data, error } = await supabase
+      .from('transactions')
+      .update({ category })
+      .eq('normalizedMerchant', normalized)
+      .select();
+    if (error) throw error;
+
+    res.json({ success: true, updatedTransactions: data?.length || 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

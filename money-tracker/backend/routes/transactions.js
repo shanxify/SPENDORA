@@ -1,71 +1,48 @@
 const express = require('express');
-const { readData, writeData, TRANSACTIONS_FILE } = require('../utils/fileStore');
+const supabase = require('../utils/supabaseClient');
 
 const router = express.Router();
 
 function parseCustomDate(dateStr) {
-  // Example: "Mar 10, 2026"
   const parsed = new Date(dateStr);
-
-  // Normalize time to 00:00:00
-  return new Date(
-    parsed.getFullYear(),
-    parsed.getMonth(),
-    parsed.getDate()
-  );
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    let transactions = readData(TRANSACTIONS_FILE);
-
     const { search, category, type, fromDate, toDate, page = 1, limit = 20 } = req.query;
 
-    // Additional filters (search, category, type) are preserved per usual route behavior
-    if (search) {
-      transactions = transactions.filter(t =>
-        t.merchant.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+    let query = supabase.from('transactions').select('*');
+
+    if (search) query = query.ilike('merchant', `%${search}%`);
     if (category && category !== 'All Categories' && category !== 'all') {
-      transactions = transactions.filter(t => t.category === category);
+      query = query.eq('category', category);
     }
     if (type && type !== 'All Types' && type !== 'all') {
-      transactions = transactions.filter(t => t.type === type.toLowerCase());
+      query = query.eq('type', type.toLowerCase());
     }
-
-    if (fromDate && toDate) {
+    if (fromDate) {
       const from = new Date(fromDate);
-      const to = new Date(toDate);
-
-      // CRITICAL: align time offsets for fair boundary tests locally
       from.setHours(0, 0, 0, 0);
+      query = query.gte('date', from.toISOString().split('T')[0]);
+    }
+    if (toDate) {
+      const to = new Date(toDate);
       to.setHours(23, 59, 59, 999);
-
-      transactions = transactions.filter(tx => {
-        const txDate = parseCustomDate(tx.date);
-        return txDate >= from && txDate <= to;
-      });
-      
-      console.log("FROM:", from.toISOString());
-      console.log("TO:", to.toISOString());
-      console.log("TOTAL AFTER FILTER:", transactions.length);
+      query = query.lte('date', to.toISOString().split('T')[0]);
     }
 
-    // SORT
-    transactions.sort((a, b) => {
-      return parseCustomDate(b.date) - parseCustomDate(a.date);
-    });
+    const { data: all, error: countError } = await query;
+    if (countError) throw countError;
 
-    // PAGINATION
-    const totalCount = transactions.length;
+    // Sort by date descending
+    all.sort((a, b) => parseCustomDate(b.date) - parseCustomDate(a.date));
+
+    const totalCount = all.length;
     const currentPage = parseInt(page);
     const pageLimit = parseInt(limit);
-
     const start = (currentPage - 1) * pageLimit;
-    const end = start + pageLimit;
-
-    const paginatedData = transactions.slice(start, end);
+    const paginatedData = all.slice(start, start + pageLimit);
 
     res.json({
       data: paginatedData,
@@ -73,74 +50,59 @@ router.get('/', (req, res) => {
       page: currentPage,
       totalPages: Math.ceil(totalCount / pageLimit)
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { category } = req.body;
-    
-    const transactions = readData(TRANSACTIONS_FILE);
-    const index = transactions.findIndex(t => t.id === id);
-    
-    if (index === -1) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    transactions[index].category = category;
-    writeData(TRANSACTIONS_FILE, transactions);
-    
-    res.json({ success: true, transaction: transactions[index] });
+
+    const { data, error } = await supabase
+      .from('transactions')
+      .update({ category })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ success: true, transaction: data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// DELETE all transactions at once
 router.delete('/clear', async (req, res) => {
   try {
-    // Write empty array to transactions.json
-    writeData(TRANSACTIONS_FILE, []);
-    // Optionally also clear merchant mappings for a fresh start
-    // writeData('merchantMap', {}); // uncomment if you want full reset
-    res.json({ 
-      success: true, 
-      message: 'All transactions cleared successfully',
-      deleted: 0
-    });
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .neq('id', ''); // delete all rows
+    if (error) throw error;
+    res.json({ success: true, message: 'All transactions cleared successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to clear transactions: ' + err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    let transactions = readData(TRANSACTIONS_FILE);
-    
-    const count = transactions.length;
-    transactions = transactions.filter(t => t.id !== id);
-    
-    if (transactions.length === count) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    writeData(TRANSACTIONS_FILE, transactions);
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+    if (error) throw error;
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/', (req, res) => {
+router.delete('/', async (req, res) => {
   try {
-    const transactions = readData(TRANSACTIONS_FILE);
-    writeData(TRANSACTIONS_FILE, []);
-    res.json({ success: true, deleted: transactions.length });
+    const { error } = await supabase.from('transactions').delete().neq('id', '');
+    if (error) throw error;
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
