@@ -5,6 +5,7 @@ import TopNav from '../components/Layout/TopNav';
 import MerchantMapper from '../components/Categories/MerchantMapper';
 import SearchBar from '../components/Transactions/SearchBar';
 
+
 const MerchantMapping = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [merchants, setMerchants] = useState([]);
@@ -81,12 +82,12 @@ const MerchantMapping = () => {
   return (
     <div className="min-h-full bg-primary-bg pb-10 flex flex-col">
       <TopNav 
-        title="Merchant Mapping" 
+        title="Merchant Mapping"
         meta="Map merchants to categories for automatic categorization"
       />
       
-      <div className="p-8 max-w-7xl mx-auto w-full space-y-6 flex-1 flex flex-col animate-in fade-in duration-300">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-md">
+      <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-6 flex-1 flex flex-col animate-in fade-in duration-300">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#0c0c14] border border-white/10 p-4 rounded-2xl shadow-md">
           <SearchBar value={filters.search} onChange={handleSearchChange} />
           
           <button 

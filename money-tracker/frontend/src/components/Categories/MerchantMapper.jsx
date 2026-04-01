@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, CheckSquare, Square, Check } from 'lucide-react';
+import BorderGlow from '../BorderGlow';
 
 const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate }) => {
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -33,7 +34,19 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
   };
 
   return (
-    <div className="w-full bg-card border border-border rounded-xl shadow-lg backdrop-blur-md">
+    <BorderGlow
+      className="w-full"
+      edgeSensitivity={40}
+      glowColor="270 80 70"
+      backgroundColor="#0c0c14"
+      borderRadius={20}
+      glowRadius={30}
+      glowIntensity={0.5}
+      coneSpread={20}
+      animated={false}
+      colors={['#7c3aed']}
+    >
+      <div className="w-full rounded-2xl overflow-hidden">
       
       {selectedIds.size > 0 && (
         <div className="bg-accent/10 border-b border-accent/20 px-6 py-3 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
@@ -111,10 +124,10 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                       {isUncategorized && <span className="w-2 h-2 rounded-full bg-warning animate-pulse" title="Needs Customization"></span>}
                     </p>
                   </td>
-                  <td className="py-4 px-6 text-center text-text-secondary font-mono">
+                  <td className="py-4 px-6 text-center text-text-secondary number-font">
                     {m.count}
                   </td>
-                  <td className="py-4 px-6 text-right font-mono font-medium text-text-primary">
+                  <td className="py-4 px-6 text-right font-medium text-text-primary number-font">
                     {formatCurrency(m.totalSpend)}
                   </td>
                   <td className="py-4 px-6 relative w-64">
@@ -154,6 +167,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
         </table>
       </div>
     </div>
+    </BorderGlow>
   );
 };
 

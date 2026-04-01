@@ -27,14 +27,14 @@ const FilterPanel = ({ categories, filters, onFilterChange }) => {
       <div className="flex items-center gap-2">
         <input 
           type="date"
-          className="bg-secondary-bg border border-border text-text-primary text-sm rounded-xl focus:ring-accent focus:border-accent block p-2 shadow-sm"
+          className="bg-[#0c0c14] border border-white/10 rounded-xl px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none transition text-text-primary text-sm block"
           value={filters.from}
           onChange={(e) => onFilterChange({ ...filters, from: e.target.value })}
         />
         <span className="text-text-muted">to</span>
         <input 
           type="date"
-          className="bg-secondary-bg border border-border text-text-primary text-sm rounded-xl focus:ring-accent focus:border-accent block p-2 shadow-sm"
+          className="bg-[#0c0c14] border border-white/10 rounded-xl px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none transition text-text-primary text-sm block"
           value={filters.to}
           onChange={(e) => onFilterChange({ ...filters, to: e.target.value })}
         />

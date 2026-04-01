@@ -470,6 +470,16 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+        {/* Footer Signature */}
+        <div className="text-center mt-12 pb-6">
+          <p className="text-xs tracking-wide text-white/30">
+            Created by{" "}
+            <span className="text-purple-400 font-semibold hover:text-purple-300 transition duration-300 cursor-pointer">
+              SHANX
+            </span>
+          </p>
+        </div>
+
       </div>
     </div>
   );

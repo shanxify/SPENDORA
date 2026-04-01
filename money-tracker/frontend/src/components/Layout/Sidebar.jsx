@@ -15,11 +15,13 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 fixed h-full bg-[#111118] border-r border-[#22222E] flex flex-col pt-8 pb-6 px-4 z-10 shadow-2xl">
-      <div className="flex items-center gap-3 px-4 mb-10">
-        <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-[0_0_15px_var(--accent-glow)]">
-          <span className="text-xl font-syne font-bold text-white tracking-tighter">MT</span>
-        </div>
-        <h1 className="text-2xl font-syne font-bold text-text-primary tracking-tight">MoneyTrack</h1>
+      <div onClick={() => window.location.reload()} className="flex items-center px-4 mb-10 mt-2 transition-all duration-300 hover:opacity-90 cursor-pointer">
+        <h1 className="brand-font text-2xl text-white flex items-baseline tracking-wide">
+          <span className="font-medium">SPEND</span>
+          <span className="text-[32px] font-bold text-purple-400 ml-0.5 leading-none">
+            X
+          </span>
+        </h1>
       </div>
 
       <nav className="flex-1 space-y-2">

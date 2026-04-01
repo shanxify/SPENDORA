@@ -5,48 +5,44 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --bg-primary: #0A0A0F;
-    --bg-secondary: #111118;
-    --bg-card: #16161F;
-    --bg-hover: #1C1C28;
+    --bg-primary: #060010;
+    --bg-secondary: #0a0a14;
+    --bg-card: #0c0c14;
+    --bg-hover: #12121c;
     
     /* Accents */
-    --accent: #7C6FCD;
-    --accent-light: #9D93D8;
-    --accent-glow: rgba(124, 111, 205, 0.15);
+    --accent: #7c3aed;
+    --accent-light: #8b5cf6;
+    --accent-glow: rgba(124, 58, 237, 0.15);
     
     /* Status colors */
-    --success: #22C55E;
+    --success: #22c55e;
     --success-bg: rgba(34, 197, 94, 0.1);
-    --danger: #EF4444;
+    --danger: #ef4444;
     --danger-bg: rgba(239, 68, 68, 0.1);
-    --warning: #F59E0B;
+    --warning: #f59e0b;
     --warning-bg: rgba(245, 158, 11, 0.1);
     
     /* Text */
-    --text-primary: #F0F0F8;
-    --text-secondary: #A0A0B8;
-    --text-muted: #606080;
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
     
     /* Borders */
-    --border: #22222E;
-    --border-light: #2A2A3A;
+    --border: rgba(255,255,255,0.08);
+    --border-light: rgba(255,255,255,0.1);
   }
 
   body {
     @apply bg-primary-bg text-text-primary font-sans antialiased;
     background-color: var(--bg-primary);
   }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-syne;
-  }
 }
 
 @layer components {
   .btn-primary {
     @apply px-4 py-2 bg-accent text-white rounded-lg font-medium tracking-wide transition-all 
-      hover:bg-accent-light hover:shadow-[0_0_15px_var(--accent-glow)] active:scale-95;
+      hover:bg-accent-light hover:shadow-none active:scale-95;
   }
   
   .btn-secondary {
@@ -55,12 +51,12 @@
   }
   
   .input-field {
-    @apply w-full bg-secondary-bg border border-border rounded-lg px-4 py-2 text-text-primary 
-      focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted;
+    @apply w-full bg-[#0c0c14] border border-white/10 rounded-xl px-4 py-2 text-white 
+      focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder-gray-500;
   }
   
   .glass-panel {
-    @apply bg-card border border-border rounded-2xl backdrop-blur-md;
+    @apply bg-[#0c0c14] border border-white/10 rounded-2xl;
   }
 }
 
@@ -78,4 +74,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted); 
+}
+
+.number-font {
+  font-family: 'Inter', sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.4px;
+}
+
+.brand-font {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.4px;
 }

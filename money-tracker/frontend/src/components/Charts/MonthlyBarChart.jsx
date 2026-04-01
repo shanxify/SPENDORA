@@ -25,7 +25,7 @@ const MonthlyBarChart = ({ data }) => {
           {payload.map((entry, index) => (
             <p key={`item-${index}`} className="flex justify-between gap-4 text-sm mb-1">
               <span className="text-text-muted capitalize">{entry.name}:</span>
-              <span className={`font-mono font-bold ${entry.name === 'debit' ? 'text-danger' : 'text-success'}`}>
+              <span className={`font-bold ${entry.name === 'debit' ? 'text-danger' : 'text-success'}`}>
                 {FullCurrencyFormatter(entry.value)}
               </span>
             </p>

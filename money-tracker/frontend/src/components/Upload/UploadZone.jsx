@@ -95,21 +95,21 @@ const UploadZone = ({ onUploadSuccess }) => {
               <span className="text-2xl">📊</span>
               <span className="text-text-primary font-medium">Transactions Found</span>
             </div>
-            <span className="text-2xl font-mono font-bold">{result.extracted}</span>
+            <span className="text-2xl font-bold">{result.extracted}</span>
           </div>
           <div className="flex items-center justify-between p-4 bg-success-bg rounded-xl border border-success/20">
             <div className="flex items-center gap-3">
               <span className="text-2xl">✨</span>
               <span className="text-success font-medium">New Transactions Added</span>
             </div>
-            <span className="text-2xl font-mono font-bold text-success">+{result.added}</span>
+            <span className="text-2xl font-bold text-success">+{result.added}</span>
           </div>
           <div className="flex items-center justify-between p-4 bg-secondary-bg rounded-xl border border-border">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🔄</span>
               <span className="text-text-muted font-medium">Duplicates Skipped</span>
             </div>
-            <span className="text-lg font-mono font-medium text-text-muted">{result.duplicates}</span>
+            <span className="text-lg font-medium text-text-muted">{result.duplicates}</span>
           </div>
         </div>
         

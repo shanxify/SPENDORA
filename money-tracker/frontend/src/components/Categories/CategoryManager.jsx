@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import BorderGlow from '../BorderGlow';
+import GlareHover from '../GlareHover';
 
 const CategoryManager = ({ categories, onCreate, onUpdate, onDelete }) => {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -75,15 +77,29 @@ const CategoryManager = ({ categories, onCreate, onUpdate, onDelete }) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-syne font-bold text-text-primary">Manage Categories</h2>
-        <button 
-          onClick={() => {
-            setIsCreating(true);
-            setCreateForm({ name: '', icon: '📁', color: '#95A5A6' });
-          }}
-          className="btn-primary flex items-center gap-2 text-sm"
+        <GlareHover
+          background="transparent"
+          borderRadius="8px"
+          borderColor="transparent"
+          glareColor="#c084fc"
+          glareOpacity={0.2}
+          glareAngle={-30}
+          glareSize={250}
+          transitionDuration={650}
+          width="auto"
+          height="auto"
+          style={{ width: 'auto', height: 'auto' }}
         >
-          <Plus className="w-4 h-4" /> Add New
-        </button>
+          <button 
+            onClick={() => {
+              setIsCreating(true);
+              setCreateForm({ name: '', icon: '📁', color: '#95A5A6' });
+            }}
+            className="btn-primary flex items-center gap-2 text-sm"
+          >
+            <Plus className="w-4 h-4" /> Add New
+          </button>
+        </GlareHover>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -120,86 +136,66 @@ const CategoryManager = ({ categories, onCreate, onUpdate, onDelete }) => {
         )}
 
         {categories.map((category) => (
-          <div
+          <BorderGlow
             key={category.id}
-            onMouseEnter={() => setHoveredCard(category.id)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              position: 'relative',
-              backgroundColor: '#1E1E2E',
-              border: '1px solid #2A2A3E',
-              borderRadius: '12px',
-              padding: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              cursor: 'pointer',
-              transition: 'border-color 0.2s',
-              borderColor: hoveredCard === category.id ? '#6C63FF' : '#2A2A3E'
-            }}
+            className="w-full"
+            edgeSensitivity={40}
+            glowColor="270 80 70"
+            backgroundColor="#0c0c14"
+            borderRadius={18}
+            glowRadius={25}
+            glowIntensity={0.5}
+            coneSpread={18}
+            animated={false}
+            colors={['#7c3aed']}
           >
-            {/* Category Icon */}
-            <div style={{
-              width: '48px', height: '48px',
-              backgroundColor: category.color + '22',
-              borderRadius: '12px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '24px'
-            }}>
-              {category.icon}
-            </div>
+            <div className="flex items-center justify-between px-5 py-4 w-full">
 
-            {/* Category Info */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#F0F0F8', fontWeight: '600', fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {category.name}
-              </div>
-              <div style={{ color: '#A0A0B8', fontSize: '13px', marginTop: '4px' }}>
-                {category.transactionCount || 0} transactions
-              </div>
-            </div>
+              {/* LEFT SIDE */}
+              <div className="flex items-center gap-4">
+                
+                <div className="w-12 h-12 rounded-xl bg-[#1a1a2a] flex items-center justify-center">
+                  <span className="text-2xl">{category.icon}</span>
+                </div>
 
-            {/* Action Buttons — show on hover */}
-            {hoveredCard === category.id && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
+                <div>
+                  <h3 className="text-base font-medium text-white truncate max-w-[120px]">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-gray-400 number-font">
+                    {category.transactionCount || 0} transactions
+                  </p>
+                </div>
+
+              </div>
+
+              {/* RIGHT SIDE */}
+              <div className="flex items-center gap-2">
+                
+                {/* Edit */}
+                <button 
                   onClick={(e) => { e.stopPropagation(); handleEditClick(category); }}
-                  style={{
-                    width: '36px', height: '36px',
-                    backgroundColor: '#6C63FF22',
-                    border: '1px solid #6C63FF',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '16px',
-                    color: '#6C63FF'
-                  }}
+                  className="w-9 h-9 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 transition flex items-center justify-center"
                   title="Edit category"
                 >
-                  ✏️
+                  <Pencil size={16} />
                 </button>
 
+                {/* Delete */}
                 {!['Uncategorized'].includes(category.name) && (
-                  <button
+                  <button 
                     onClick={(e) => { e.stopPropagation(); handleDeleteClick(category); }}
-                    style={{
-                      width: '36px', height: '36px',
-                      backgroundColor: '#EF444422',
-                      border: '1px solid #EF4444',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '16px',
-                      color: '#EF4444'
-                    }}
+                    className="w-9 h-9 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition flex items-center justify-center"
                     title="Delete category"
                   >
-                    🗑️
+                    <Trash2 size={16} />
                   </button>
                 )}
+
               </div>
-            )}
-          </div>
+
+            </div>
+          </BorderGlow>
         ))}
       </div>
 

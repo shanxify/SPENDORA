@@ -47,7 +47,7 @@ const MonthlySummary = ({ recentTransactions }) => {
                     <span className="text-xs text-text-muted">{formatDate(tx.date)} &bull; {tx.category}</span>
                   </div>
                 </div>
-                <div className={`font-mono font-semibold ${isDebit ? 'text-danger' : 'text-success'}`}>
+                <div className={`font-semibold ${isDebit ? 'text-danger' : 'text-success'}`}>
                   {isDebit ? '-' : '+'}{formatCurrency(tx.amount)}
                 </div>
               </div>

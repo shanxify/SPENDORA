@@ -7,45 +7,44 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          bg: '#0A0A0F',
+          bg: '#060010',
         },
         secondary: {
-          bg: '#111118',
+          bg: '#0a0a14',
         },
         card: {
-          DEFAULT: '#16161F',
-          hover: '#1C1C28'
+          DEFAULT: '#0c0c14',
+          hover: '#12121c'
         },
         accent: {
-          DEFAULT: '#7C6FCD',
-          light: '#9D93D8',
-          glow: 'rgba(124, 111, 205, 0.15)'
+          DEFAULT: '#7c3aed',
+          light: '#8b5cf6',
+          glow: 'rgba(124, 58, 237, 0.15)'
         },
         success: {
-          DEFAULT: '#22C55E',
+          DEFAULT: '#22c55e',
           bg: 'rgba(34, 197, 94, 0.1)',
         },
         danger: {
-          DEFAULT: '#EF4444',
+          DEFAULT: '#ef4444',
           bg: 'rgba(239, 68, 68, 0.1)',
         },
         warning: {
-          DEFAULT: '#F59E0B',
+          DEFAULT: '#f59e0b',
           bg: 'rgba(245, 158, 11, 0.1)',
         },
         text: {
-          primary: '#F0F0F8',
-          secondary: '#A0A0B8',
-          muted: '#606080'
+          primary: '#ffffff',
+          secondary: '#9ca3af',
+          muted: '#6b7280'
         },
         border: {
-          DEFAULT: '#22222E',
-          light: '#2A2A3A'
+          DEFAULT: 'rgba(255,255,255,0.08)',
+          light: 'rgba(255,255,255,0.1)'
         }
       },
       fontFamily: {
-        syne: ['Syne', 'sans-serif'],
-        sans: ['DM Sans', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       }
     },

@@ -3,6 +3,7 @@ import Client from '../api/client';
 import TopNav from '../components/Layout/TopNav';
 import CategoryManager from '../components/Categories/CategoryManager';
 
+
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +53,11 @@ const Categories = () => {
   return (
     <div className="min-h-full bg-primary-bg pb-10">
       <TopNav 
-        title="Categories" 
-        meta={`Manage your transaction categories`}
+        title="Categories"
+        meta="Manage your transaction categories"
       />
       
-      <div className="p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-300">
+      <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-300" style={{ padding: '24px 40px' }}>
         {loading ? (
           <div className="w-full flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin" />

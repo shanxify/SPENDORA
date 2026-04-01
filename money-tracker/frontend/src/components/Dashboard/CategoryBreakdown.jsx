@@ -38,8 +38,8 @@ const CategoryBreakdown = ({ categories }) => {
                   <span className="font-medium text-text-primary group-hover:text-accent transition-colors">{cat.name}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="font-mono font-bold text-text-primary">{formatCurrency(cat.total)}</span>
-                  <span className="text-xs text-text-muted">{cat.percentage}%</span>
+                  <span className="font-bold text-text-primary number-font">{formatCurrency(cat.total)}</span>
+                  <span className="text-xs text-text-muted number-font">{cat.percentage}%</span>
                 </div>
               </div>
               <div className="h-1.5 w-full bg-secondary-bg rounded-full overflow-hidden">
