@@ -6,8 +6,6 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Export app for Vercel serverless functions
-module.exports = app;
 
 // Middleware
 const allowedOrigins = [
@@ -47,3 +45,8 @@ if (!process.env.VERCEL) {
     console.log(`Money Tracker backend running on http://localhost:${PORT}`);
   });
 }
+
+// Required for Vercel serverless deployment
+module.exports = app;
+
+// Server initialized
