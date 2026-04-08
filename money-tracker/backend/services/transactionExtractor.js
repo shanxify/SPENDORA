@@ -2,6 +2,23 @@ const { v4: uuidv4 } = require('uuid');
 
 const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
+function stripEmojis(text) {
+  if (!text) return '';
+  return text
+    .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+    .replace(/[\u{2600}-\u{26FF}]/gu, '')
+    .replace(/[\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[\u{FE00}-\u{FE0F}]/gu, '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{E0000}-\u{E007F}]/gu, '')
+    .replace(/[\u200D]/g, '')
+    .replace(/[\uFE0F]/g, '')
+    .replace(/[\u20E3]/g, '')
+    .replace(/[^\x20-\x7E\u00C0-\u024F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function cleanMerchant(raw) {
   let name = raw.trim();
   name = name.replace(/^(Paid to|Received from|Refund from)\s*/i, '');
@@ -62,7 +79,8 @@ function extractTransactions(rawText) {
     const amount = parseAmount(match[6]);
     let rawMerchantName = match[8].trim();
     
-    let merchantClean = rawMerchantName.replace(/\s*(Paid by|Credited to)\s+[A-Z0-9X]+/i, '').replace(/\s+/g, ' ').trim();
+    let cleanedRaw = stripEmojis(rawMerchantName);
+    let merchantClean = cleanedRaw.replace(/\s*(Paid by|Credited to)\s+[A-Z0-9X]+/i, '').replace(/\s+/g, ' ').trim();
     merchantClean = cleanMerchant(merchantClean);
 
     if (amount <= 0 || merchantClean.length < 2) continue;

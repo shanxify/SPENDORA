@@ -108,4 +108,61 @@ router.delete('/', async (req, res) => {
   }
 });
 
+router.post('/cleanup-merchants', async (req, res) => {
+  try {
+    const { data: transactions, error: fetchError } = await supabase.from('transactions').select('*');
+    if (fetchError) throw fetchError;
+    
+    function stripEmojis(text) {
+      if (!text) return '';
+      return text
+        .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+        .replace(/[\u{2600}-\u{26FF}]/gu, '')
+        .replace(/[\u{2700}-\u{27BF}]/gu, '')
+        .replace(/[\u{FE00}-\u{FE0F}]/gu, '')
+        .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+        .replace(/[\u{E0000}-\u{E007F}]/gu, '')
+        .replace(/[\u200D]/g, '')
+        .replace(/[\uFE0F]/g, '')
+        .replace(/[\u20E3]/g, '')
+        .replace(/[^\x20-\x7E\u00C0-\u024F]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    const updates = [];
+    
+    for (const t of transactions) {
+      const cleanMerchantText = stripEmojis(t.merchant);
+      const cleanNormalized = stripEmojis(t.merchant)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .trim();
+        
+      if (t.merchant !== cleanMerchantText || t.normalizedMerchant !== cleanNormalized) {
+        updates.push({
+          id: t.id,
+          merchant: cleanMerchantText,
+          normalizedMerchant: cleanNormalized || 'unknown'
+        });
+      }
+    }
+    
+    for (const u of updates) {
+      await supabase.from('transactions').update({ 
+        merchant: u.merchant, 
+        normalizedMerchant: u.normalizedMerchant 
+      }).eq('id', u.id);
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Cleaned ${updates.length} transactions`,
+      example: updates.length > 0 ? updates.find(t => t.merchant.includes('Ruchi')) || updates[0] : null
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

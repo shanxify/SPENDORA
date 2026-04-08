@@ -48,8 +48,12 @@ router.post('/', upload.single('file'), async (req, res) => {
     const { added, duplicates } = filterDuplicates(newTransactions, existingTransactions || []);
 
     if (added.length > 0) {
-      const { error } = await supabase.from('transactions').insert(added);
-      if (error) throw error;
+      const sanitizedAdded = added.map(({ rawMerchant, uploadedAt, time, ...rest }) => rest);
+      const { error } = await supabase.from('transactions').insert(sanitizedAdded);
+      if (error) {
+        require('fs').writeFileSync('insert_error.txt', error.message);
+        throw error;
+      }
     }
 
     res.json({

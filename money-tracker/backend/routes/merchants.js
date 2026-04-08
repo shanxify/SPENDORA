@@ -11,10 +11,12 @@ router.get('/', async (req, res) => {
     const { data: transactions, error } = await query;
     if (error) throw error;
 
+const { normalizeMerchant } = require('../services/merchantNormalizer');
+
     // Group by normalized merchant
     const merchantMap = {};
     (transactions || []).forEach(t => {
-      const key = t.normalizedMerchant;
+      const key = t.normalizedMerchant || normalizeMerchant(t.merchant);
       if (!merchantMap[key]) {
         merchantMap[key] = { normalized: key, display: t.merchant, category: t.category, count: 0, totalSpend: 0 };
       }
