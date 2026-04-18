@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
 import Client from '../api/client';
 import TopNav from '../components/Layout/TopNav';
 import TransactionTable from '../components/Transactions/TransactionTable';
@@ -29,7 +28,9 @@ const Transactions = () => {
   const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
-    Client.getCategories().then(setCategories).catch(console.error);
+    Client.getCategories()
+      .then(data => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
   }, []);
 
   // Reset to page 1 when any filter changes
@@ -65,10 +66,11 @@ const Transactions = () => {
       urlParams.set('page', params.page);
       setSearchParams(urlParams);
 
-      const response = await axios.get('http://localhost:5001/api/transactions', { params });
+      const response = await Client.getTransactions(params);
 
-      // Use response.data.data NOT response.data directly
-      setTransactions(response.data.data);
+      // response is already response.data from Client; it has a .data array
+      const txnData = response?.data;
+      setTransactions(Array.isArray(txnData) ? txnData : []);
       // Total pages and count are now calculated from filteredTransactions
     } catch (err) {
       console.error('Failed to fetch transactions:', err);
@@ -101,7 +103,7 @@ const Transactions = () => {
   const handleClearAll = async () => {
     setClearing(true);
     try {
-      await axios.delete('http://localhost:5001/api/transactions/clear');
+      await Client.clearTransactions();
       setTransactions([]);
       setShowClearConfirm(false);
       alert('All transactions cleared! You can now upload a fresh PDF.');

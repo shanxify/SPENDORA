@@ -39,6 +39,11 @@ export const Client = {
     return response.data;
   },
 
+  clearTransactions: async () => {
+    const response = await api.delete('/transactions/clear');
+    return response.data;
+  },
+
   getCategories: async () => {
     const response = await api.get('/categories');
     return response.data;

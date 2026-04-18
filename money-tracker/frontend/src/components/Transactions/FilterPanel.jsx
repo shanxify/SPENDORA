@@ -9,7 +9,7 @@ const FilterPanel = ({ categories, filters, onFilterChange }) => {
         onChange={(e) => onFilterChange({ ...filters, category: e.target.value })}
       >
         <option value="">All Categories</option>
-        {categories.map((c) => (
+        {(Array.isArray(categories) ? categories : []).map((c) => (
           <option key={c.id} value={c.name}>{c.name}</option>
         ))}
       </select>
