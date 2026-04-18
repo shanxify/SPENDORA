@@ -135,7 +135,7 @@ const CategoryManager = ({ categories, onCreate, onUpdate, onDelete }) => {
           </div>
         )}
 
-        {categories.map((category) => (
+        {(Array.isArray(categories) ? categories : []).map((category) => (
           <BorderGlow
             key={category.id}
             className="w-full"

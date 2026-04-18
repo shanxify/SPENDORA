@@ -11,9 +11,11 @@ const Categories = () => {
   const fetchCategories = async () => {
     try {
       const data = await Client.getCategories();
-      setCategories(data);
+      // Always ensure we set an array — never an error object
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching categories:", error);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
