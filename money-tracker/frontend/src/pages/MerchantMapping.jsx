@@ -24,10 +24,12 @@ const MerchantMapping = () => {
         Client.getMerchants(filters),
         Client.getCategories()
       ]);
-      setMerchants(merchs);
-      setCategories(cats);
+      setMerchants(Array.isArray(merchs) ? merchs : []);
+      setCategories(Array.isArray(cats) ? cats : []);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setMerchants([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ const MerchantMapping = () => {
     }
   };
 
-  const uncatCount = merchants.filter(m => m.category === 'Uncategorized').length;
+  const uncatCount = (Array.isArray(merchants) ? merchants : []).filter(m => m.category === 'Uncategorized').length;
 
   return (
     <div className="min-h-full bg-primary-bg pb-10 flex flex-col">

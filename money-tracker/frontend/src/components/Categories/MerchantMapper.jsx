@@ -22,8 +22,9 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
   };
 
   const toggleAll = () => {
-    if (selectedIds.size === merchants.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(merchants.map(m => m.normalized)));
+    const safeMerchants = Array.isArray(merchants) ? merchants : [];
+    if (selectedIds.size === safeMerchants.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(safeMerchants.map(m => m.normalized)));
   };
 
   const handleBulkAssign = (categoryName) => {
@@ -63,7 +64,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
             
             {activeDropdown === 'bulk' && (
               <div className="absolute right-0 mt-2 w-48 bg-secondary-bg border border-border rounded-xl shadow-2xl z-20 py-2 max-h-60 overflow-y-auto custom-scrollbar">
-                {categories.map(cat => (
+                {(Array.isArray(categories) ? categories : []).map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => handleBulkAssign(cat.name)}
@@ -85,7 +86,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
             <tr className="bg-secondary-bg/50 border-b border-border">
               <th className="py-4 px-6 w-12 text-center">
                 <button onClick={toggleAll} className="text-text-muted hover:text-text-primary">
-                  {selectedIds.size === merchants.length && merchants.length > 0 ? (
+                  {selectedIds.size === (Array.isArray(merchants) ? merchants : []).length && (Array.isArray(merchants) ? merchants : []).length > 0 ? (
                     <CheckSquare className="w-5 h-5 text-accent" />
                   ) : (
                     <Square className="w-5 h-5" />
@@ -99,11 +100,11 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {merchants.length === 0 ? (
+            {(Array.isArray(merchants) ? merchants : []).length === 0 ? (
               <tr><td colSpan="5" className="py-8 text-center text-text-muted">No merchants found</td></tr>
             ) : null}
             
-            {merchants.map(m => {
+            {(Array.isArray(merchants) ? merchants : []).map(m => {
               const isUncategorized = m.category === 'Uncategorized';
               const isSelected = selectedIds.has(m.normalized);
               
@@ -141,7 +142,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                     
                     {activeDropdown === m.normalized && (
                       <div className="absolute top-full left-6 mt-1 w-[calc(100%-3rem)] bg-card border border-border rounded-xl shadow-xl z-20 mx-auto py-2 max-h-60 overflow-y-auto custom-scrollbar">
-                        {categories.map(cat => (
+                        {(Array.isArray(categories) ? categories : []).map(cat => (
                           <div
                             key={cat.id}
                             className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
