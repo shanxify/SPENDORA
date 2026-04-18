@@ -40,13 +40,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error', message: err.message });
 });
 
-if (!process.env.VERCEL) {
+// Local development only
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5001;
   app.listen(PORT, () => {
-    console.log(`Money Tracker backend running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-// Required for Vercel serverless deployment
+// Required for Vercel serverless
 module.exports = app;
-
-// Server initialized
