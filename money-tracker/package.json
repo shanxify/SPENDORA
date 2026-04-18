@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "PhonePe transaction tracker",
   "scripts": {
-    "install:all": "npm install && cd api/server && npm install && cd ../../frontend && npm install",
+    "install:all": "npm install && cd frontend/api/server && npm install && cd ../../.. && cd frontend && npm install",
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "start:backend": "cd api/server && npm start",
+    "start:backend": "cd frontend/api/server && npm start",
     "start:frontend": "cd frontend && npm start",
     "build": "cd frontend && npm run build",
-    "postinstall": "cd api/server && npm install && cd ../../frontend && npm install"
+    "postinstall": "cd frontend/api/server && npm install && cd ../../../"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.101.1",
