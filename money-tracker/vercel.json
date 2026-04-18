@@ -1,18 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/build"
-      }
-    },
-    {
-      "src": "vercel-api/index.js",
-      "use": "@vercel/node"
+  "functions": {
+    "vercel-api/index.js": {
+      "includeFiles": "backend/**"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
