@@ -1,38 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const supabase = require('../supabase');
 const { extractTransactions } = require('../services/transactionExtractor');
 const pdfParse = require('pdf-parse');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '_' + file.originalname);
-  }
-});
-
+// Use memory storage — Vercel serverless has no writable disk (except /tmp)
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files accepted'));
   },
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
 });
 
 router.post('/', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    const dataBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdfParse(dataBuffer);
+    // Parse PDF directly from memory buffer — no disk I/O required
+    const pdfData = await pdfParse(req.file.buffer);
     const rawText = pdfData.text;
 
     if (!rawText || rawText.trim().length < 50) {
@@ -47,7 +35,7 @@ router.post('/', upload.single('file'), async (req, res) => {
       });
     }
 
-    // Get existing UTR numbers for duplicate detection
+    // Get existing transactions for duplicate detection
     const { data: existingData } = await supabase
       .from('transactions')
       .select('upi_ref, transaction_id, date, amount, normalized_merchant, time');
@@ -69,7 +57,6 @@ router.post('/', upload.single('file'), async (req, res) => {
     let duplicateCount = 0;
 
     for (const txn of extractedTransactions) {
-      // Check duplicate by UTR
       let isDuplicate = false;
 
       if (txn.upiRef) {
@@ -90,7 +77,6 @@ router.post('/', upload.single('file'), async (req, res) => {
         continue;
       }
 
-      // Apply category from merchant map
       const category = merchantMap[txn.normalizedMerchant] || 'Uncategorized';
 
       newTransactions.push({
@@ -110,7 +96,7 @@ router.post('/', upload.single('file'), async (req, res) => {
       });
     }
 
-    // Insert new transactions into Supabase
+    // Insert into Supabase
     if (newTransactions.length > 0) {
       const { error: insertError } = await supabase
         .from('transactions')
@@ -118,9 +104,6 @@ router.post('/', upload.single('file'), async (req, res) => {
 
       if (insertError) throw insertError;
     }
-
-    // Cleanup uploaded file
-    fs.unlinkSync(req.file.path);
 
     res.json({
       success: true,
