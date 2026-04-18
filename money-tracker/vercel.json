@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "vercel-api/index.js": {
-      "includeFiles": "backend/**"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "vercel-api/index.js"
+      "destination": "/api/[...slug].js"
     },
     {
       "source": "/(.*)",
