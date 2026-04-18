@@ -64,7 +64,6 @@ module.exports = async (req, res) => {
     const start = (page - 1) * limit;
     const { data, error, count } = await query
       .order('date', { ascending: false })
-      .order('time', { ascending: false })
       .range(start, start + limit - 1);
 
     if (error) return res.status(500).json({ error: error.message });

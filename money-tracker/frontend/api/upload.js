@@ -87,3 +87,8 @@ app.post('*', upload.single('file'), async (req, res) => {
 });
 
 module.exports = app;
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
+};
