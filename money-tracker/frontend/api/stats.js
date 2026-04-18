@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
 
     const mMap = {};
     txns.filter(t => t.type === 'debit').forEach(t => {
-      const key = t.normalized_merchant || t.merchant;
+      const key = t.normalizedMerchant || t.merchant;
       if (!mMap[key]) mMap[key] = { display: t.merchant, category: t.category, total: 0, count: 0 };
       mMap[key].total += parseFloat(t.amount || 0);
       mMap[key].count++;

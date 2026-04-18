@@ -18,8 +18,8 @@ module.exports = async (req, res) => {
     const { merchants, category } = req.body;
     let totalUpdated = 0;
     for (const normalized of (merchants || [])) {
-      const { data } = await supabase.from('transactions').update({ category }).eq('normalized_merchant', normalized).select();
-      await supabase.from('merchant_map').upsert({ normalized_merchant: normalized, category_name: category });
+      const { data } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).select();
+      await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
       totalUpdated += data?.length || 0;
     }
     return res.json({ success: true, updatedTransactions: totalUpdated });
@@ -31,9 +31,9 @@ module.exports = async (req, res) => {
     if (parts[1]) {
       const normalized = decodeURIComponent(parts[1].split('?')[0]);
       const { category } = req.body;
-      const { data, error } = await supabase.from('transactions').update({ category }).eq('normalized_merchant', normalized).select();
+      const { data, error } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).select();
       if (error) return res.status(500).json({ error: error.message });
-      await supabase.from('merchant_map').upsert({ normalized_merchant: normalized, category_name: category });
+      await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
       return res.json({ success: true, updatedTransactions: data?.length || 0 });
     }
   }
@@ -42,12 +42,12 @@ module.exports = async (req, res) => {
   if (method === 'GET') {
     const urlObj = new URL(url, 'http://localhost');
     const search = urlObj.searchParams.get('search');
-    const { data: transactions, error } = await supabase.from('transactions').select('merchant, normalized_merchant, category, amount, type');
+    const { data: transactions, error } = await supabase.from('transactions').select('merchant, "normalizedMerchant", category, amount, type');
     if (error) return res.status(500).json({ error: error.message });
 
     const merchantMap = {};
     (transactions || []).forEach(t => {
-      const key = t.normalized_merchant;
+      const key = t.normalizedMerchant;
       if (!merchantMap[key]) merchantMap[key] = { normalized: key, display: t.merchant, category: t.category, count: 0, totalSpend: 0 };
       merchantMap[key].count++;
       if (t.type === 'debit') merchantMap[key].totalSpend += parseFloat(t.amount || 0);

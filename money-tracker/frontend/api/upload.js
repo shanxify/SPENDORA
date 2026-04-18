@@ -42,35 +42,35 @@ app.post('*', upload.single('file'), async (req, res) => {
 
     const { data: existingData } = await supabase
       .from('transactions')
-      .select('upi_ref, transaction_id, date, amount, normalized_merchant, time');
+      .select('"upiRef", "transactionId", date, amount, "normalizedMerchant"');
     const existing = existingData || [];
 
     const { data: merchantMapData } = await supabase.from('merchant_map').select('*');
     const merchantMap = {};
-    (merchantMapData || []).forEach(m => { merchantMap[m.normalized_merchant] = m.category_name; });
+    (merchantMapData || []).forEach(m => { merchantMap[m.normalized] = m.category; });
 
     const newTransactions = [];
     let duplicateCount = 0;
 
     for (const txn of extractedTransactions) {
       let isDuplicate = false;
-      if (txn.upiRef) isDuplicate = existing.some(e => e.upi_ref === txn.upiRef);
-      else if (txn.transactionId) isDuplicate = existing.some(e => e.transaction_id === txn.transactionId);
+      if (txn.upiRef) isDuplicate = existing.some(e => e.upiRef === txn.upiRef);
+      else if (txn.transactionId) isDuplicate = existing.some(e => e.transactionId === txn.transactionId);
       else isDuplicate = existing.some(e =>
-        e.date === txn.date && e.time === txn.time &&
-        parseFloat(e.amount) === txn.amount && e.normalized_merchant === txn.normalizedMerchant
+        e.date === txn.date &&
+        parseFloat(e.amount) === txn.amount && e.normalizedMerchant === txn.normalizedMerchant
       );
 
       if (isDuplicate) { duplicateCount++; continue; }
 
       newTransactions.push({
-        id: txn.id, date: txn.date, time: txn.time,
-        merchant: txn.merchant, raw_merchant: txn.rawMerchant,
-        normalized_merchant: txn.normalizedMerchant,
+        id: txn.id, date: txn.date,
+        merchant: txn.merchant,
+        normalizedMerchant: txn.normalizedMerchant,
         amount: txn.amount, type: txn.type,
         category: merchantMap[txn.normalizedMerchant] || 'Uncategorized',
-        upi_ref: txn.upiRef || null, transaction_id: txn.transactionId || null,
-        status: txn.status || 'Success', uploaded_at: new Date().toISOString()
+        upiRef: txn.upiRef || null, transactionId: txn.transactionId || null,
+        status: txn.status || 'Success'
       });
     }
 
