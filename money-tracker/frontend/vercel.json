@@ -1,6 +1,10 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/categories(.*)", "destination": "/api/categories.js" },
+    { "source": "/api/merchants(.*)", "destination": "/api/merchants.js" },
+    { "source": "/api/stats(.*)", "destination": "/api/stats.js" },
+    { "source": "/api/transactions(.*)", "destination": "/api/transactions.js" },
+    { "source": "/api/upload(.*)", "destination": "/api/upload.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "PhonePe transaction tracker",
   "scripts": {
-    "start:frontend": "cd frontend && npm start",
-    "start:backend": "cd frontend/api/server && node server.js",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start": "cd frontend && npx vercel dev",
     "build": "cd frontend && npm run build"
   },
   "devDependencies": {
