@@ -36,8 +36,8 @@ const Dashboard = () => {
       console.log("FILTER:", fromDate, toDate);
       const [txRes, catRes] = await Promise.all([
         Client.getTransactions({
-          fromDate,
-          toDate,
+          from: fromDate,
+          to: toDate,
           page: 1,
           limit: 1000
         }),
