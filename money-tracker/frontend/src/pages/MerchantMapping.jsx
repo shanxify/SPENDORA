@@ -110,7 +110,11 @@ const MerchantMapping = () => {
           </div>
         ) : (
           <MerchantMapper 
-            merchants={merchants}
+            merchants={
+              filters.uncategorized 
+                ? merchants.filter(m => m.category === 'Uncategorized') 
+                : merchants
+            }
             categories={categories}
             onUpdateCategory={handleUpdateCategory}
             onBulkUpdate={handleBulkUpdate}
