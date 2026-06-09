@@ -82,7 +82,11 @@ app.post('*', upload.single('file'), async (req, res) => {
     res.json({ success: true, extracted: extractedTransactions.length, added: newTransactions.length, duplicates: duplicateCount });
   } catch (err) {
     console.error('Upload error:', err);
-    res.status(500).json({ error: err.message });
+    let msg = err.message || 'An error occurred during upload.';
+    if (msg.includes('fetch failed') || msg.includes('ENOTFOUND') || msg.includes('getaddrinfo')) {
+      msg = 'Database connection failed: The database host could not be resolved. This usually means the Supabase project is paused or deleted. Please restore your project in the Supabase Dashboard (https://supabase.com/dashboard).';
+    }
+    res.status(500).json({ error: msg });
   }
 });
 

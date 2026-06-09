@@ -64,6 +64,11 @@ module.exports = async (req, res) => {
       categoryBreakdown, monthlyData, topMerchants, recentTransactions, lastUpdated
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Stats error:', err);
+    let msg = err.message || 'An error occurred fetching stats.';
+    if (msg.includes('fetch failed') || msg.includes('ENOTFOUND') || msg.includes('getaddrinfo')) {
+      msg = 'Database connection failed: The database host could not be resolved. This usually means the Supabase project is paused or deleted. Please restore your project in the Supabase Dashboard (https://supabase.com/dashboard).';
+    }
+    res.status(500).json({ error: msg });
   }
 };
