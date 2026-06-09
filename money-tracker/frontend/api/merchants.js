@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
         const key = t.normalizedMerchant;
         if (!merchantMap[key]) merchantMap[key] = { normalized: key, display: t.merchant, category: t.category, count: 0, totalSpend: 0 };
         merchantMap[key].count++;
-        if (t.type === 'debit') merchantMap[key].totalSpend += parseFloat(t.amount || 0);
+        merchantMap[key].totalSpend += parseFloat(t.amount || 0);
       });
 
       let result = Object.values(merchantMap);
