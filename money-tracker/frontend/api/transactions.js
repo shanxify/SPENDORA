@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
 
     // PUT /api/transactions/:id
     if (method === 'PUT') {
-      const idMatch = url.match(/\/api\/transactions\/(.+)/);
+      const idMatch = url.match(/\/transactions\/(.+)/);
       if (idMatch) {
         const id = idMatch[1];
         const { category } = req.body;
@@ -46,6 +46,7 @@ module.exports = async (req, res) => {
 
     // GET /api/transactions
     if (method === 'GET') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       const urlObj = new URL(url, 'http://localhost');
       const search = urlObj.searchParams.get('search');
       const category = urlObj.searchParams.get('category');

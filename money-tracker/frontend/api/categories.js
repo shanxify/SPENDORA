@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
 
     // PUT /api/categories/:id
     if (method === 'PUT') {
-      const idMatch = url.match(/\/api\/categories\/(.+)/);
+      const idMatch = url.match(/\/categories\/(.+)/);
       if (idMatch) {
         const id = idMatch[1];
         const { name, icon, color } = req.body;
@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
 
     // DELETE /api/categories/:id
     if (method === 'DELETE') {
-      const idMatch = url.match(/\/api\/categories\/(.+)/);
+      const idMatch = url.match(/\/categories\/(.+)/);
       if (idMatch) {
         const id = idMatch[1];
         const { data: cat } = await supabase.from('categories').select('name').eq('id', id).single();
@@ -50,6 +50,7 @@ module.exports = async (req, res) => {
 
     // GET /api/categories
     if (method === 'GET') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       const { data: categories, error } = await supabase.from('categories').select('*').order('name');
       if (error) return res.status(500).json({ error: error.message });
       const { data: txns } = await supabase.from('transactions').select('category');

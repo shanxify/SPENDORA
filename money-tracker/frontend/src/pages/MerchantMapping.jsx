@@ -89,6 +89,18 @@ const MerchantMapping = () => {
       />
       
       <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-6 flex-1 flex flex-col animate-in fade-in duration-300">
+        
+        {/* Help Banner */}
+        <div className="glass-panel p-4 flex gap-3 items-start border border-accent/20 bg-[#6C63FF]/5 rounded-2xl">
+          <span className="text-lg">💡</span>
+          <div>
+            <h4 className="text-sm font-bold text-white mb-0.5">Categorizing Income vs Expenses</h4>
+            <p className="text-xs text-text-muted leading-relaxed">
+              Merchants labeled as <span className="text-success font-medium">Income</span> represent received funds and will show up under the <strong>Income</strong> toggle on the Dashboard. Merchants labeled as <span className="text-danger font-medium">Expense</span> represent spent funds and will show up under <strong>Expenses</strong>.
+            </p>
+          </div>
+        </div>
+
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#0c0c14] border border-white/10 p-4 rounded-2xl shadow-md">
           <SearchBar value={filters.search} onChange={handleSearchChange} />
           

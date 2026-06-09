@@ -19,8 +19,10 @@ module.exports = async (req, res) => {
       const { merchants, category } = req.body;
       let totalUpdated = 0;
       for (const normalized of (merchants || [])) {
-        const { data } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).select();
-        await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
+        const { data, error: txErr } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).select();
+        if (txErr) return res.status(500).json({ error: txErr.message });
+        const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
+        if (upsertError) return res.status(500).json({ error: upsertError.message });
         totalUpdated += data?.length || 0;
       }
       return res.json({ success: true, updatedTransactions: totalUpdated });
@@ -28,19 +30,21 @@ module.exports = async (req, res) => {
 
     // PUT /api/merchants/:normalized
     if (method === 'PUT') {
-      const parts = url.split('/api/merchants/');
+      const parts = url.split('/merchants/');
       if (parts[1]) {
         const normalized = decodeURIComponent(parts[1].split('?')[0]);
         const { category } = req.body;
         const { data, error } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).select();
         if (error) return res.status(500).json({ error: error.message });
-        await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
+        const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
+        if (upsertError) return res.status(500).json({ error: upsertError.message });
         return res.json({ success: true, updatedTransactions: data?.length || 0 });
       }
     }
 
     // GET /api/merchants
     if (method === 'GET') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       const urlObj = new URL(url, 'http://localhost');
       const search = urlObj.searchParams.get('search');
       const { data: transactions, error } = await supabase.from('transactions').select('merchant, "normalizedMerchant", category, amount, type');
@@ -49,9 +53,24 @@ module.exports = async (req, res) => {
       const merchantMap = {};
       (transactions || []).forEach(t => {
         const key = t.normalizedMerchant;
-        if (!merchantMap[key]) merchantMap[key] = { normalized: key, display: t.merchant, category: t.category, count: 0, totalSpend: 0 };
+        if (!merchantMap[key]) {
+          merchantMap[key] = { 
+            normalized: key, 
+            display: t.merchant, 
+            category: t.category, 
+            count: 0, 
+            totalSpend: 0,
+            debitCount: 0,
+            creditCount: 0
+          };
+        }
         merchantMap[key].count++;
         merchantMap[key].totalSpend += parseFloat(t.amount || 0);
+        if (t.type === 'credit') {
+          merchantMap[key].creditCount++;
+        } else {
+          merchantMap[key].debitCount++;
+        }
       });
 
       let result = Object.values(merchantMap);

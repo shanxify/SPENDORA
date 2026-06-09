@@ -120,10 +120,19 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                     </button>
                   </td>
                   <td className="py-4 px-6">
-                    <p className="text-sm font-medium text-text-primary flex items-center gap-2">
-                      {m.display}
+                    <div className="flex items-center gap-3">
+                      <p className="text-sm font-medium text-text-primary">
+                        {m.display}
+                      </p>
+                      {(m.creditCount > 0 && m.debitCount > 0) ? (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase tracking-wide">Mixed</span>
+                      ) : m.creditCount > 0 ? (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-success/10 text-success border border-success/20 uppercase tracking-wide">Income</span>
+                      ) : (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-danger/10 text-danger border border-danger/20 uppercase tracking-wide">Expense</span>
+                      )}
                       {isUncategorized && <span className="w-2 h-2 rounded-full bg-warning animate-pulse" title="Needs Customization"></span>}
-                    </p>
+                    </div>
                   </td>
                   <td className="py-4 px-6 text-center text-text-secondary number-font">
                     {m.count}

@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: 'frontend/.env.production' });
+require('dotenv').config({ path: '.env' });
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -7,8 +7,26 @@ const supabase = createClient(
 );
 
 async function test() {
-  const { data, error } = await supabase.from('transactions').select('*').limit(1);
-  console.log('Transactions columns:', error ? error.message : Object.keys(data[0] || {}));
+  const { data: txs, error: txError } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('normalizedMerchant', 'dad');
+  
+  if (txError) {
+    console.error('Tx error:', txError.message);
+  } else {
+    console.log('Transactions for "dad":', txs);
+  }
+
+  const { data: maps, error: mapError } = await supabase
+    .from('merchant_map')
+    .select('*');
+  
+  if (mapError) {
+    console.error('Merchant map error:', mapError.message);
+  } else {
+    console.log('Merchant map entries:', maps);
+  }
 }
 
 test();

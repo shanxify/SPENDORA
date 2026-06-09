@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [openingBalance, setOpeningBalance] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [breakdownType, setBreakdownType] = useState('expenses'); // 'expenses' or 'income'
 
   useEffect(() => {
     const saved = localStorage.getItem("openingBalance");
@@ -77,7 +78,14 @@ const Dashboard = () => {
       transactionCount: transactions.length
     };
 
-    // Category Breakdown
+    const FALLBACK_COLORS = [
+      '#FF6B6B', '#FECB5A', '#4ECDC4', '#C7F464', 
+      '#81D4FA', '#B39DDB', '#FFAB91', '#A5D6A7', 
+      '#F48FB1', '#80CBC4', '#9FA8DA', '#FFCC80',
+      '#FF8A65', '#4DB6AC', '#BA68C8', '#AED581'
+    ];
+
+    // Category Breakdown (Expenses)
     const breakdown = {};
     debits.forEach(t => {
       const cat = t.category || 'Uncategorized';
@@ -89,32 +97,50 @@ const Dashboard = () => {
     let grandTotal = 0;
     Object.values(breakdown).forEach(c => grandTotal += c.total);
 
-    const FALLBACK_COLORS = [
-      '#FF6B6B', '#FECB5A', '#4ECDC4', '#C7F464', 
-      '#81D4FA', '#B39DDB', '#FFAB91', '#A5D6A7', 
-      '#F48FB1', '#80CBC4', '#9FA8DA', '#FFCC80',
-      '#FF8A65', '#4DB6AC', '#BA68C8', '#AED581'
-    ];
     const usedColors = new Set();
-    
-    // Sort first so largest categories get colors assigned first
     const sortedCategories = Object.values(breakdown).sort((a, b) => b.total - a.total);
     
     const categoryBreakdown = sortedCategories.map((cat, index) => {
       const dbCat = apiCategories.find(c => c.name === cat.name);
       let color = dbCat ? dbCat.color : null;
-      
-      // If no color, default gray, or already used -> pull from premium palette
       if (!color || color === '#95A5A6' || usedColors.has(color)) {
         color = FALLBACK_COLORS.find(c => !usedColors.has(c)) || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
       }
-      
       usedColors.add(color);
-
       return {
         ...cat,
         total: Math.round(cat.total * 100) / 100,
         percentage: grandTotal > 0 ? ((cat.total / grandTotal) * 100).toFixed(1) : "0",
+        color
+      };
+    });
+
+    // Income Category Breakdown
+    const incBreakdown = {};
+    credits.forEach(t => {
+      const cat = t.category || 'Uncategorized';
+      if (!incBreakdown[cat]) incBreakdown[cat] = { name: cat, total: 0, count: 0 };
+      incBreakdown[cat].total += parseFloat(t.amount) || 0;
+      incBreakdown[cat].count++;
+    });
+
+    let grandTotalInc = 0;
+    Object.values(incBreakdown).forEach(c => grandTotalInc += c.total);
+
+    const usedColorsInc = new Set();
+    const sortedIncCategories = Object.values(incBreakdown).sort((a, b) => b.total - a.total);
+    
+    const incomeBreakdown = sortedIncCategories.map((cat, index) => {
+      const dbCat = apiCategories.find(c => c.name === cat.name);
+      let color = dbCat ? dbCat.color : null;
+      if (!color || color === '#95A5A6' || usedColorsInc.has(color)) {
+        color = FALLBACK_COLORS.find(c => !usedColorsInc.has(c)) || FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+      }
+      usedColorsInc.add(color);
+      return {
+        ...cat,
+        total: Math.round(cat.total * 100) / 100,
+        percentage: grandTotalInc > 0 ? ((cat.total / grandTotalInc) * 100).toFixed(1) : "0",
         color
       };
     });
@@ -163,7 +189,7 @@ const Dashboard = () => {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
 
-    return { totals, categoryBreakdown, monthlyData, topMerchants, recentTransactions };
+    return { totals, categoryBreakdown, incomeBreakdown, monthlyData, topMerchants, recentTransactions };
   }, [transactions, apiCategories, openingBalance]);
 
   return (
@@ -388,12 +414,32 @@ const Dashboard = () => {
             {/* CHARTS */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
               <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-full lg:col-span-1 shadow-md">
-                <h3 className="text-lg font-medium text-white mb-6">Spending Distribution</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-medium text-white">
+                    {breakdownType === 'expenses' ? 'Spending Distribution' : 'Income Distribution'}
+                  </h3>
+                  <div className="flex bg-[#12121c] rounded-lg p-0.5 border border-white/10">
+                    <button 
+                      onClick={() => setBreakdownType('expenses')}
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${breakdownType === 'expenses' ? 'bg-[#6C63FF] text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                      Expenses
+                    </button>
+                    <button 
+                      onClick={() => setBreakdownType('income')}
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${breakdownType === 'income' ? 'bg-[#6C63FF] text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                      Income
+                    </button>
+                  </div>
+                </div>
                 <div className="flex-1 min-h-[250px]">
-                  {transactions.length > 0 && stats.categoryBreakdown.length > 0 ? (
-                    <SpendingPieChart data={stats.categoryBreakdown} />
+                  {transactions.length > 0 && (breakdownType === 'expenses' ? stats.categoryBreakdown.length > 0 : stats.incomeBreakdown.length > 0) ? (
+                    <SpendingPieChart data={breakdownType === 'expenses' ? stats.categoryBreakdown : stats.incomeBreakdown} />
                   ) : (
-             <div className="h-full flex items-center justify-center text-gray-500 font-medium">No valid expenses</div>
+                    <div className="h-full flex items-center justify-center text-gray-500 font-medium">
+                      No valid {breakdownType === 'expenses' ? 'expenses' : 'income'}
+                    </div>
                   )}
                 </div>
               </div>
@@ -412,7 +458,12 @@ const Dashboard = () => {
             {/* LISTS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
               <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
-                <CategoryBreakdown categories={stats.categoryBreakdown} />
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-medium text-white">
+                    {breakdownType === 'expenses' ? 'Expense Categories' : 'Income Categories'}
+                  </h4>
+                </div>
+                <CategoryBreakdown categories={breakdownType === 'expenses' ? stats.categoryBreakdown : stats.incomeBreakdown} />
               </div>
               <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
                 <MonthlySummary recentTransactions={stats.recentTransactions} />

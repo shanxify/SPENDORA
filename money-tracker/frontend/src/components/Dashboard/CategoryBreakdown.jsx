@@ -18,8 +18,6 @@ const CategoryBreakdown = ({ categories }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className="text-lg font-syne font-bold text-text-primary mb-4">Top Spending Categories</h3>
-      
       {categories.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-text-muted">
           No category data available
