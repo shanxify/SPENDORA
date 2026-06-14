@@ -68,7 +68,7 @@ app.post('*', upload.single('file'), async (req, res) => {
         merchant: txn.merchant,
         normalizedMerchant: txn.normalizedMerchant,
         amount: txn.amount, type: txn.type,
-        category: merchantMap[txn.normalizedMerchant] || 'Uncategorized',
+        category: txn.type === 'credit' ? 'Income' : (merchantMap[txn.normalizedMerchant] || 'Uncategorized'),
         upiRef: txn.upiRef || null, transactionId: txn.transactionId || null,
         status: txn.status || 'Success'
       });

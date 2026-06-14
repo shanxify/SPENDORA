@@ -94,9 +94,9 @@ const MerchantMapping = () => {
         <div className="glass-panel p-4 flex gap-3 items-start border border-accent/20 bg-[#6C63FF]/5 rounded-2xl">
           <span className="text-lg">💡</span>
           <div>
-            <h4 className="text-sm font-bold text-white mb-0.5">Categorizing Income vs Expenses</h4>
+            <h4 className="text-sm font-bold text-white mb-0.5">Map Merchants to Categories</h4>
             <p className="text-xs text-text-muted leading-relaxed">
-              Merchants labeled as <span className="text-success font-medium">Income</span> represent received funds and will show up under the <strong>Income</strong> toggle on the Dashboard. Merchants labeled as <span className="text-danger font-medium">Expense</span> represent spent funds and will show up under <strong>Expenses</strong>.
+              This page lists all merchants where you have spent money (debit transactions). Map them to categories for automatic expense categorization. Received funds (credits/income) are automatically grouped under <strong>Income</strong>.
             </p>
           </div>
         </div>
