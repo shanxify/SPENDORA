@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, Receipt, Tags, Store, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, Settings, LogOut } from 'lucide-react';
 
 const Sidebar = () => {
   const [version] = useState('v1.0.0');
@@ -8,7 +8,7 @@ const Sidebar = () => {
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Upload', path: '/upload', icon: Upload },
-    { name: 'Transactions', path: '/transactions', icon: Receipt },
+    { name: 'Transactions', path: '/transactions', icon: ArrowLeftRight },
     { name: 'Categories', path: '/categories', icon: Tags },
     { name: 'Merchants', path: '/merchants', icon: Store }
   ];
