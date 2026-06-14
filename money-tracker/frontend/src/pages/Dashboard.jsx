@@ -118,10 +118,10 @@ const Dashboard = () => {
     // Income Category Breakdown
     const incBreakdown = {};
     credits.forEach(t => {
-      const cat = t.category || 'Uncategorized';
-      if (!incBreakdown[cat]) incBreakdown[cat] = { name: cat, total: 0, count: 0 };
-      incBreakdown[cat].total += parseFloat(t.amount) || 0;
-      incBreakdown[cat].count++;
+      const merchantName = t.merchant || 'Unknown';
+      if (!incBreakdown[merchantName]) incBreakdown[merchantName] = { name: merchantName, total: 0, count: 0 };
+      incBreakdown[merchantName].total += parseFloat(t.amount) || 0;
+      incBreakdown[merchantName].count++;
     });
 
     let grandTotalInc = 0;
@@ -460,7 +460,7 @@ const Dashboard = () => {
               <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-lg font-medium text-white">
-                    {breakdownType === 'expenses' ? 'Expense Categories' : 'Income Categories'}
+                    {breakdownType === 'expenses' ? 'Expense Categories' : 'Income Sources'}
                   </h4>
                 </div>
                 <CategoryBreakdown categories={breakdownType === 'expenses' ? stats.categoryBreakdown : stats.incomeBreakdown} />
