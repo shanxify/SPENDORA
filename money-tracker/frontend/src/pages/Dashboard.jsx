@@ -40,7 +40,7 @@ const Dashboard = () => {
           from: fromDate,
           to: toDate,
           page: 1,
-          limit: 1000
+          limit: 5000
         }),
         Client.getCategories()
       ]);

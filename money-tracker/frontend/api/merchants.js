@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       const urlObj = new URL(url, 'http://localhost');
       const search = urlObj.searchParams.get('search');
-      const { data: transactions, error } = await supabase.from('transactions').select('merchant, "normalizedMerchant", category, amount, type');
+      const { data: transactions, error } = await supabase.from('transactions').select('merchant, normalizedMerchant, category, amount, type');
       if (error) return res.status(500).json({ error: error.message });
 
       const merchantMap = {};
@@ -74,16 +74,19 @@ module.exports = async (req, res) => {
             category: t.category, 
             type: t.type,
             count: 0, 
+            totalAmount: 0,
             totalSpend: 0
           };
         }
         merchantMap[key].count++;
-        merchantMap[key].totalSpend += parseFloat(t.amount || 0);
+        const amountVal = parseFloat(t.amount || 0);
+        merchantMap[key].totalAmount += amountVal;
+        merchantMap[key].totalSpend += amountVal;
       });
 
       let result = Object.values(merchantMap);
       if (search) result = result.filter(m => m.display.toLowerCase().includes(search.toLowerCase()));
-      result.sort((a, b) => b.totalSpend - a.totalSpend);
+      result.sort((a, b) => b.totalAmount - a.totalAmount);
       return res.json(result);
     }
 

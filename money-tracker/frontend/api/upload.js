@@ -63,12 +63,16 @@ app.post('*', upload.single('file'), async (req, res) => {
 
       if (isDuplicate) { duplicateCount++; continue; }
 
+      const compositeKey = `${txn.normalizedMerchant}_${txn.type}`;
+      const mappedCategory = merchantMap[compositeKey] || merchantMap[txn.normalizedMerchant];
+      const defaultCategory = txn.type === 'credit' ? 'Income' : 'Uncategorized';
+
       newTransactions.push({
         id: txn.id, date: txn.date,
         merchant: txn.merchant,
         normalizedMerchant: txn.normalizedMerchant,
         amount: txn.amount, type: txn.type,
-        category: txn.type === 'credit' ? 'Income' : (merchantMap[`${txn.normalizedMerchant}_${txn.type}`] || merchantMap[txn.normalizedMerchant] || 'Uncategorized'),
+        category: mappedCategory || defaultCategory,
         upiRef: txn.upiRef || null, transactionId: txn.transactionId || null,
         status: txn.status || 'Success'
       });
