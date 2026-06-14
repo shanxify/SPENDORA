@@ -19,7 +19,14 @@ module.exports = async (req, res) => {
       const { merchants, category } = req.body;
       let totalUpdated = 0;
       for (const normalized of (merchants || [])) {
-        const { data, error: txErr } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).eq('type', 'debit').select();
+        let normalizedMerchant = normalized;
+        let type = 'debit';
+        const lastUnderscore = normalized.lastIndexOf('_');
+        if (lastUnderscore !== -1) {
+          normalizedMerchant = normalized.substring(0, lastUnderscore);
+          type = normalized.substring(lastUnderscore + 1);
+        }
+        const { data, error: txErr } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).select();
         if (txErr) return res.status(500).json({ error: txErr.message });
         const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
         if (upsertError) return res.status(500).json({ error: upsertError.message });
@@ -34,7 +41,14 @@ module.exports = async (req, res) => {
       if (parts[1]) {
         const normalized = decodeURIComponent(parts[1].split('?')[0]);
         const { category } = req.body;
-        const { data, error } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalized).eq('type', 'debit').select();
+        let normalizedMerchant = normalized;
+        let type = 'debit';
+        const lastUnderscore = normalized.lastIndexOf('_');
+        if (lastUnderscore !== -1) {
+          normalizedMerchant = normalized.substring(0, lastUnderscore);
+          type = normalized.substring(lastUnderscore + 1);
+        }
+        const { data, error } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).select();
         if (error) return res.status(500).json({ error: error.message });
         const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category });
         if (upsertError) return res.status(500).json({ error: upsertError.message });
@@ -47,17 +61,18 @@ module.exports = async (req, res) => {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       const urlObj = new URL(url, 'http://localhost');
       const search = urlObj.searchParams.get('search');
-      const { data: transactions, error } = await supabase.from('transactions').select('merchant, "normalizedMerchant", category, amount, type').eq('type', 'debit');
+      const { data: transactions, error } = await supabase.from('transactions').select('merchant, "normalizedMerchant", category, amount, type');
       if (error) return res.status(500).json({ error: error.message });
 
       const merchantMap = {};
       (transactions || []).forEach(t => {
-        const key = t.normalizedMerchant;
+        const key = `${t.normalizedMerchant}_${t.type}`;
         if (!merchantMap[key]) {
           merchantMap[key] = { 
             normalized: key, 
             display: t.merchant, 
             category: t.category, 
+            type: t.type,
             count: 0, 
             totalSpend: 0
           };

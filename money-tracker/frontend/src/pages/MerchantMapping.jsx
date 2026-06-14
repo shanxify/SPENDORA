@@ -96,7 +96,7 @@ const MerchantMapping = () => {
           <div>
             <h4 className="text-sm font-bold text-white mb-0.5">Map Merchants to Categories</h4>
             <p className="text-xs text-text-muted leading-relaxed">
-              This page lists all merchants where you have spent money (debit transactions). Map them to categories for automatic expense categorization. Received funds (credits/income) are automatically grouped under <strong>Income</strong>.
+              This page lists unique merchants from both debit (payments) and credit (receipts) transactions. Map them to categories for automatic transaction categorization.
             </p>
           </div>
         </div>

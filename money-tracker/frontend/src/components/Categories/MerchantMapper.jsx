@@ -94,6 +94,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                 </button>
               </th>
               <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase">Merchant</th>
+              <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-center">Type</th>
               <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-center">Transactions</th>
               <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-right">Total Spend</th>
               <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase">Category</th>
@@ -101,7 +102,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
           </thead>
           <tbody className="divide-y divide-border">
             {(Array.isArray(merchants) ? merchants : []).length === 0 ? (
-              <tr><td colSpan="5" className="py-8 text-center text-text-muted">No merchants found</td></tr>
+              <tr><td colSpan="6" className="py-8 text-center text-text-muted">No merchants found</td></tr>
             ) : null}
             
             {(Array.isArray(merchants) ? merchants : []).map(m => {
@@ -124,6 +125,17 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                       {m.display}
                       {isUncategorized && <span className="w-2 h-2 rounded-full bg-warning animate-pulse" title="Needs Customization"></span>}
                     </p>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    {m.type?.toLowerCase() === 'credit' ? (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-success/10 text-success border border-success/20 uppercase tracking-wide">
+                        CREDIT
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-danger/10 text-danger border border-danger/20 uppercase tracking-wide">
+                        DEBIT
+                      </span>
+                    )}
                   </td>
                   <td className="py-4 px-6 text-center text-text-secondary number-font">
                     {m.count}
