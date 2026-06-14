@@ -1,11 +1,73 @@
-import React, { useState } from 'react';
-import { ChevronDown, CheckSquare, Square, Check } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronDown, CheckSquare, Square, Check, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import BorderGlow from '../BorderGlow';
 
 const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate }) => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [activeDropdown, setActiveDropdown] = useState(null);
   
+  const [sortField, setSortField] = useState(null); // 'merchant', 'type', 'count', 'spend'
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  const sortedMerchants = useMemo(() => {
+    const list = Array.isArray(merchants) ? [...merchants] : [];
+    if (!sortField) return list;
+
+    list.sort((a, b) => {
+      let valA, valB;
+      if (sortField === 'merchant') {
+        valA = a.display || '';
+        valB = b.display || '';
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      if (sortField === 'type') {
+        valA = a.type || '';
+        valB = b.type || '';
+        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      if (sortField === 'count') {
+        valA = a.count || 0;
+        valB = b.count || 0;
+        return sortAsc ? valA - valB : valB - valA;
+      }
+      if (sortField === 'spend') {
+        valA = a.totalSpend || 0;
+        valB = b.totalSpend || 0;
+        return sortAsc ? valA - valB : valB - valA;
+      }
+      return 0;
+    });
+    return list;
+  }, [merchants, sortField, sortAsc]);
+
+  const renderSortHeader = (field, label, align = 'left') => {
+    const isCurrent = sortField === field;
+    return (
+      <th 
+        onClick={() => handleSort(field)}
+        className={`py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase cursor-pointer hover:text-text-primary select-none transition-colors ${align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left'}`}
+      >
+        <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
+          <span>{label}</span>
+          {isCurrent ? (
+            sortAsc ? <ArrowUp className="w-3.5 h-3.5 text-accent" /> : <ArrowDown className="w-3.5 h-3.5 text-accent" />
+          ) : (
+            <ArrowUpDown className="w-3.5 h-3.5 opacity-30 hover:opacity-75" />
+          )}
+        </div>
+      </th>
+    );
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -93,19 +155,19 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
                   )}
                 </button>
               </th>
-              <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase">Merchant</th>
-              <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-center">Type</th>
-              <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-center">Transactions</th>
-              <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase text-right">Total Spend</th>
+              {renderSortHeader('merchant', 'Merchant', 'left')}
+              {renderSortHeader('type', 'Type', 'center')}
+              {renderSortHeader('count', 'Transactions', 'center')}
+              {renderSortHeader('spend', 'Total Spend', 'right')}
               <th className="py-4 px-6 text-xs font-syne text-text-muted font-semibold tracking-wider uppercase">Category</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {(Array.isArray(merchants) ? merchants : []).length === 0 ? (
+            {sortedMerchants.length === 0 ? (
               <tr><td colSpan="6" className="py-8 text-center text-text-muted">No merchants found</td></tr>
             ) : null}
             
-            {(Array.isArray(merchants) ? merchants : []).map(m => {
+            {sortedMerchants.map(m => {
               const isUncategorized = m.category === 'Uncategorized';
               const isSelected = selectedIds.has(m.normalized);
               
