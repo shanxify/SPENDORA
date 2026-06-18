@@ -5,16 +5,30 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+async function getUserFromRequest(req, supabase) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error) return null;
+  return data.user;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   try {
-    const { data: transactions, error } = await supabase.from('transactions').select('*');
+    const user = await getUserFromRequest(req, supabase);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - please log in' });
+    }
+
+    const { data: transactions, error } = await supabase.from('transactions').select('*').eq('user_id', user.id);
     if (error) throw error;
 
     const txns = transactions || [];

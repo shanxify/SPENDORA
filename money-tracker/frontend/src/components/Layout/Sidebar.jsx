@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const [version] = useState('v1.0.0');
+  const { user, signOut } = useAuth();
 
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -58,7 +60,46 @@ const Sidebar = () => {
             <span>Settings</span>
           </div>
         </div>
-        <div className="flex items-center justify-between text-text-muted text-sm px-2">
+
+        {user && (
+          <div style={{
+            padding: '12px 16px',
+            borderTop: '1px solid #2A2A3E',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginTop: '12px'
+          }}>
+            {user.user_metadata?.avatar_url && (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="profile"
+                style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+              />
+            )}
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div style={{ color: '#f1f1f5', fontSize: '13px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.user_metadata?.full_name || user.email}
+              </div>
+              <button
+                onClick={signOut}
+                style={{
+                  color: '#ef4444',
+                  fontSize: '12px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  marginTop: '2px'
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-text-muted text-sm px-2 pt-2">
           <span>Version {version}</span>
         </div>
       </div>

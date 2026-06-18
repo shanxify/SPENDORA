@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { supabase } from '../supabaseClient';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api'),
@@ -6,6 +7,19 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
+});
+
+// Add this function to get current session token
+async function getAuthHeaders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session ? { Authorization: `Bearer ${session.access_token}` } : {};
+}
+
+// Update axios instance to add auth header to every request
+api.interceptors.request.use(async (config) => {
+  const headers = await getAuthHeaders();
+  config.headers = { ...config.headers, ...headers };
+  return config;
 });
 
 export const Client = {

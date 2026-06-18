@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
-    "@supabase/supabase-js": "^2.41.1",
+    "@supabase/supabase-js": "^2.108.2",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",

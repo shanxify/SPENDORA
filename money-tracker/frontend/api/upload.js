@@ -9,11 +9,20 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+async function getUserFromRequest(req, supabase) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error) return null;
+  return data.user;
+}
+
 const app = express();
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   next();
 });
@@ -29,6 +38,11 @@ const upload = multer({
 
 app.post('*', upload.single('file'), async (req, res) => {
   try {
+    const user = await getUserFromRequest(req, supabase);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - please log in' });
+    }
+
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const pdfData = await pdfParse(req.file.buffer);
@@ -42,10 +56,11 @@ app.post('*', upload.single('file'), async (req, res) => {
 
     const { data: existingData } = await supabase
       .from('transactions')
-      .select('"upiRef", "transactionId", date, amount, "normalizedMerchant"');
+      .select('"upiRef", "transactionId", date, amount, "normalizedMerchant"')
+      .eq('user_id', user.id);
     const existing = existingData || [];
 
-    const { data: merchantMapData } = await supabase.from('merchant_map').select('*');
+    const { data: merchantMapData } = await supabase.from('merchant_map').select('*').eq('user_id', user.id);
     const merchantMap = {};
     (merchantMapData || []).forEach(m => { merchantMap[m.normalized] = m.category; });
 
@@ -74,7 +89,8 @@ app.post('*', upload.single('file'), async (req, res) => {
         amount: txn.amount, type: txn.type,
         category: mappedCategory || defaultCategory,
         upiRef: txn.upiRef || null, transactionId: txn.transactionId || null,
-        status: txn.status || 'Success'
+        status: txn.status || 'Success',
+        user_id: user.id
       });
     }
 

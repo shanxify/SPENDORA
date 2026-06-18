@@ -5,18 +5,32 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+async function getUserFromRequest(req, supabase) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const token = authHeader.replace('Bearer ', '');
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error) return null;
+  return data.user;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    const user = await getUserFromRequest(req, supabase);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized - please log in' });
+    }
+
     const { url, method } = req;
 
     // DELETE /api/transactions/clear
     if (method === 'DELETE' && url.includes('/clear')) {
-      const { error } = await supabase.from('transactions').delete().neq('id', '');
+      const { error } = await supabase.from('transactions').delete().eq('user_id', user.id);
       if (error) return res.status(500).json({ error: error.message });
       return res.json({ success: true, message: 'All transactions cleared' });
     }
@@ -26,7 +40,7 @@ module.exports = async (req, res) => {
       const idMatch = url.match(/\/api\/transactions\/(.+)/);
       if (idMatch) {
         const id = idMatch[1];
-        const { error } = await supabase.from('transactions').delete().eq('id', id);
+        const { error } = await supabase.from('transactions').delete().eq('id', id).eq('user_id', user.id);
         if (error) return res.status(500).json({ error: error.message });
         return res.json({ success: true });
       }
@@ -38,7 +52,7 @@ module.exports = async (req, res) => {
       if (idMatch) {
         const id = idMatch[1];
         const { category } = req.body;
-        const { data, error } = await supabase.from('transactions').update({ category }).eq('id', id).select().single();
+        const { data, error } = await supabase.from('transactions').update({ category }).eq('id', id).eq('user_id', user.id).select().single();
         if (error) return res.status(500).json({ error: error.message });
         return res.json({ success: true, transaction: data });
       }
@@ -56,7 +70,7 @@ module.exports = async (req, res) => {
       const page = parseInt(urlObj.searchParams.get('page') || '1');
       const limit = parseInt(urlObj.searchParams.get('limit') || '20');
 
-      let query = supabase.from('transactions').select('*', { count: 'exact' });
+      let query = supabase.from('transactions').select('*', { count: 'exact' }).eq('user_id', user.id);
       if (search) query = query.ilike('merchant', `%${search}%`);
       if (category && category !== 'All Categories' && category !== 'all') query = query.eq('category', category);
       if (type && type !== 'All Types' && type !== 'all') query = query.eq('type', type.toLowerCase());
