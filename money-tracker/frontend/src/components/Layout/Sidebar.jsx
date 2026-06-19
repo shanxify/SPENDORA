@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
@@ -121,15 +121,6 @@ const Sidebar = () => {
 
             {isAccountMenuOpen && (
               <div className="bg-[#0c0c14] border-x border-b border-[#22222e] rounded-b-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                <Link
-                  to="/settings"
-                  className="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-[#12121c] hover:text-text-primary transition-all duration-150"
-                  onClick={() => setIsAccountMenuOpen(false)}
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </Link>
-                <div className="border-t border-[#22222e]" />
                 <button
                   onClick={() => {
                     setIsAccountMenuOpen(false);
