@@ -1,11 +1,39 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, Settings, LogOut } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { NavLink, Link } from 'react-router-dom';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
-  const [version] = useState('v1.0.0');
+  const [version] = useState('v1.1.7');
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      const names = user.user_metadata.full_name.trim().split(/\s+/);
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return '?';
+  };
 
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -42,10 +70,7 @@ const Sidebar = () => {
               }
             >
               <Icon
-                className={`w-5 h-5 transition-colors ${
-                  // Need to force active color if isActive, done by tailwind parent matching via group but here we use simple JS if we had access to isActive inside. We can just rely on the parent text color.
-                  '' // inheriting stroke color
-                }`}
+                className="w-5 h-5 transition-colors"
               />
               <span className="tracking-wide">{link.name}</span>
             </NavLink>
@@ -54,48 +79,69 @@ const Sidebar = () => {
       </nav>
 
       <div className="mt-auto border-t border-border-light pt-6 px-2 space-y-4">
-        <div className="flex items-center justify-between text-text-muted text-sm px-2 hover:text-text-primary transition-colors cursor-pointer">
-          <div className="flex items-center gap-3">
-            <Settings className="w-4 h-4" />
-            <span>Settings</span>
-          </div>
-        </div>
-
         {user && (
-          <div style={{
-            padding: '12px 16px',
-            borderTop: '1px solid #2A2A3E',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginTop: '12px'
-          }}>
-            {user.user_metadata?.avatar_url && (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt="profile"
-                style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-              />
-            )}
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <div style={{ color: '#f1f1f5', fontSize: '13px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {user.user_metadata?.full_name || user.email}
+          <div ref={menuRef} className="relative flex flex-col">
+            <button
+              onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+              className={`w-full flex items-center justify-between p-3 bg-[#0c0c14] border border-[#22222e] hover:bg-[#12121c] transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${
+                isAccountMenuOpen ? 'rounded-t-xl rounded-b-none border-b-0' : 'rounded-xl'
+              }`}
+              aria-expanded={isAccountMenuOpen}
+              aria-label="Account menu"
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="profile"
+                    className="w-8 h-8 rounded-full object-cover border border-border-light shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/30 text-accent flex items-center justify-center font-bold text-xs shrink-0">
+                    {getInitials()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-text-primary text-sm font-medium truncate leading-tight">
+                    {user.user_metadata?.full_name || user.email.split('@')[0]}
+                  </div>
+                  <div className="text-text-muted text-xs truncate leading-normal mt-0.5">
+                    {user.email}
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={signOut}
-                style={{
-                  color: '#ef4444',
-                  fontSize: '12px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  marginTop: '2px'
-                }}
-              >
-                Sign out
-              </button>
-            </div>
+              <div className="text-text-muted shrink-0 ml-2">
+                {isAccountMenuOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </div>
+            </button>
+
+            {isAccountMenuOpen && (
+              <div className="bg-[#0c0c14] border-x border-b border-[#22222e] rounded-b-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <Link
+                  to="/settings"
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-[#12121c] hover:text-text-primary transition-all duration-150"
+                  onClick={() => setIsAccountMenuOpen(false)}
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </Link>
+                <div className="border-t border-[#22222e]" />
+                <button
+                  onClick={() => {
+                    setIsAccountMenuOpen(false);
+                    signOut();
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-[#12121c] hover:text-text-primary transition-all duration-150 text-left w-full focus:outline-none"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
