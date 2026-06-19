@@ -7,7 +7,6 @@ import CategoryManager from '../components/Categories/CategoryManager';
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [apiVersion, setApiVersion] = useState("Checking...");
   const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchCategories = async () => {
@@ -31,15 +30,6 @@ const Categories = () => {
 
   useEffect(() => {
     fetchCategories();
-    // Query API version from headers
-    fetch('/api/categories')
-      .then(res => {
-        const ver = res.headers.get('X-Debug-Version') || 'Legacy (1.0)';
-        setApiVersion(ver);
-      })
-      .catch(err => {
-        setApiVersion("Error: " + err.message);
-      });
   }, []);
 
   const handleCreate = async (data) => {
@@ -73,7 +63,7 @@ const Categories = () => {
     <div className="min-h-full bg-primary-bg pb-10">
       <TopNav 
         title="Categories"
-        meta={`Manage your transaction categories (API: ${apiVersion})`}
+        meta="Manage your transaction categories"
       />
       
       <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto w-full animate-in fade-in duration-300">
