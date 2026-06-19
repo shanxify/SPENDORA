@@ -1,17 +1,23 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
-
-async function getUserFromRequest(req, supabase) {
+async function getAuthenticatedClient(req) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return null;
+  if (!authHeader) return { supabase: null, user: null };
   const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error) return null;
-  return data.user;
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_KEY,
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
+  );
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data || !data.user) return { supabase: null, user: null };
+  return { supabase, user: data.user };
 }
 
 module.exports = async (req, res) => {
@@ -21,7 +27,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const user = await getUserFromRequest(req, supabase);
+    const { supabase, user } = await getAuthenticatedClient(req);
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized - please log in' });
     }
