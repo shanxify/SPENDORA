@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const [version] = useState('v1.1.7');
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
@@ -44,14 +44,31 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-64 fixed h-full bg-[#111118] border-r border-[#22222E] flex flex-col pt-8 pb-6 px-4 z-10 shadow-2xl">
-      <div onClick={() => window.location.reload()} className="flex items-center px-4 mb-10 mt-2 transition-all duration-300 hover:opacity-90 cursor-pointer">
-        <h1 className="brand-font text-2xl text-white flex items-baseline tracking-wide">
-          <span className="font-medium">SPEND</span>
-          <span className="text-[32px] font-bold text-purple-400 ml-0.5 leading-none">
-            X
-          </span>
-        </h1>
+    <div className={`w-64 fixed h-full bg-[#111118] border-r border-[#22222E] flex flex-col pt-8 pb-6 px-4 z-30 shadow-2xl transition-transform duration-300 md:translate-x-0 ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    }`}>
+      <div className="flex items-center justify-between px-4 mb-10 mt-2">
+        <div 
+          onClick={() => { 
+            window.location.reload(); 
+            if (onClose) onClose(); 
+          }} 
+          className="flex items-center transition-all duration-300 hover:opacity-90 cursor-pointer"
+        >
+          <h1 className="brand-font text-2xl text-white flex items-baseline tracking-wide">
+            <span className="font-medium">SPEND</span>
+            <span className="text-[32px] font-bold text-purple-400 ml-0.5 leading-none">
+              X
+            </span>
+          </h1>
+        </div>
+        <button 
+          onClick={onClose}
+          className="md:hidden p-2 text-text-muted hover:text-text-primary hover:bg-[#12121c] rounded-xl border border-white/5 transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -61,6 +78,9 @@ const Sidebar = () => {
             <NavLink
               key={link.name}
               to={link.path}
+              onClick={() => {
+                if (onClose) onClose();
+              }}
               className={({ isActive }) =>
                 `flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
                   isActive

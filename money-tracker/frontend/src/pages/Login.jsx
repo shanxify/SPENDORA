@@ -19,8 +19,10 @@ export default function Login() {
           backgroundColor: '#0c0c14',
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '20px',
-          padding: '48px 40px',
-          width: '380px',
+          padding: '48px 24px',
+          width: '90%',
+          maxWidth: '380px',
+          margin: '0 16px',
           textAlign: 'center'
         }}
       >

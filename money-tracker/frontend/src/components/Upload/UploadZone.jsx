@@ -78,7 +78,7 @@ const UploadZone = ({ onUploadSuccess }) => {
 
   if (result) {
     return (
-      <div className="glass-panel p-8 max-w-2xl mx-auto w-full animate-in fade-in zoom-in duration-300">
+      <div className="glass-panel p-5 sm:p-8 max-w-2xl mx-auto w-full animate-in fade-in zoom-in duration-300">
         <div className="flex items-center gap-4 mb-6 border-b border-border pb-6">
           <div className="w-16 h-16 rounded-full bg-success-bg flex items-center justify-center">
             <CheckCircle className="w-8 h-8 text-success" />
@@ -128,7 +128,7 @@ const UploadZone = ({ onUploadSuccess }) => {
   return (
     <div className="max-w-3xl mx-auto w-full">
       <div 
-        className={`glass-panel p-10 border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] ${
+        className={`glass-panel p-6 sm:p-10 border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] ${
           isDragging ? 'border-accent bg-accent/5' : 'border-border-light hover:border-text-muted'
         }`}
         onDragEnter={handleDrag}

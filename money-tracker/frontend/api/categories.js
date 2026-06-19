@@ -71,6 +71,7 @@ module.exports = async (req, res) => {
     // GET /api/categories
     if (method === 'GET') {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('X-Debug-Version', '2.0');
       let { data: categories, error } = await supabase.from('categories').select('*').eq('user_id', user.id).order('name');
       if (error) return res.status(500).json({ error: error.message });
 

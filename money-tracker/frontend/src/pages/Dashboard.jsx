@@ -31,8 +31,11 @@ const Dashboard = () => {
     }
   }, []);
 
+  const [errorMsg, setErrorMsg] = useState(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       console.log("FILTER:", fromDate, toDate);
       const [txRes, catRes] = await Promise.all([
@@ -44,10 +47,21 @@ const Dashboard = () => {
         }),
         Client.getCategories()
       ]);
-      setTransactions(txRes.data || []);
-      setApiCategories(catRes || []);
+      
+      if (txRes && txRes.error) {
+        setErrorMsg(txRes.error);
+      } else {
+        setTransactions(txRes.data || []);
+      }
+      
+      if (catRes && catRes.error) {
+        setErrorMsg(catRes.error);
+      } else {
+        setApiCategories(catRes || []);
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      setErrorMsg(error.response?.data?.error || error.message);
     } finally {
       setLoading(false);
     }
@@ -219,6 +233,11 @@ const Dashboard = () => {
       />
       
       <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+        {errorMsg && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            <strong>Error:</strong> {errorMsg}
+          </div>
+        )}
         
         {/* DATE RANGE FILTER */}
         <div className="glass-panel p-4 flex flex-wrap gap-4 items-end border-border-light shadow-xl shadow-black/50">
@@ -412,8 +431,8 @@ const Dashboard = () => {
             </div>
 
             {/* CHARTS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-full lg:col-span-1 shadow-md">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[400px]">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-[350px] lg:h-full lg:col-span-1 shadow-md">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-medium text-white">
                     {breakdownType === 'expenses' ? 'Spending Distribution' : 'Income Distribution'}
@@ -443,7 +462,7 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
-              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-full lg:col-span-2 shadow-md">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 flex flex-col h-[350px] lg:h-full lg:col-span-2 shadow-md">
                 <h3 className="text-lg font-medium text-white mb-2">Monthly Cashflow</h3>
                 <div className="flex-1 min-h-[250px]">
                   {transactions.length > 0 && stats.monthlyData.length > 0 ? (
@@ -456,8 +475,8 @@ const Dashboard = () => {
             </div>
 
             {/* LISTS */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
-              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[400px]">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-[350px] lg:h-full shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-lg font-medium text-white">
                     {breakdownType === 'expenses' ? 'Expense Categories' : 'Income Sources'}
@@ -465,7 +484,7 @@ const Dashboard = () => {
                 </div>
                 <CategoryBreakdown categories={breakdownType === 'expenses' ? stats.categoryBreakdown : stats.incomeBreakdown} />
               </div>
-              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-full shadow-md">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-[350px] lg:h-full shadow-md">
                 <MonthlySummary recentTransactions={stats.recentTransactions} />
               </div>
             </div>
