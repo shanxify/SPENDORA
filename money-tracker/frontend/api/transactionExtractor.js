@@ -114,27 +114,24 @@ function extractTransactions(rawText) {
 
 function parseGooglePay(rawText) {
   const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const GPAY_REGEX = /(\d{1,2}\s+[A-Za-z]+,\s+\d{4})\s+(\d{1,2}:\d{2}\s+(?:AM|PM|am|pm))\s+(Paid to|Received from)\s+(.+?)\s+UPI Transaction ID:\s*(\d+)\s+(?:Paid by|Received in|Deposit to|Credited to)?\s*(.+?)\s*(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d+)?)/gi;
+  const GPAY_REGEX = /(\d{1,2})\s*([A-Za-z]+),\s*(\d{4})\s+(\d{1,2}:\d{2})\s*([AP]M|am|pm)\s+(Paid\s*to|Received\s*from)\s*(.+?)\s+UPI\s*Transaction\s*ID\s*:\s*(\d+)\s+(?:Paid\s*by|Received\s*in|Deposit\s*to|Credited\s*to)?\s*(.+?)\s*(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d+)?)/gi;
 
   const transactions = [];
   let match;
   while ((match = GPAY_REGEX.exec(cleanText)) !== null) {
     try {
-      const dateStr = match[1];
-      const timeStr = match[2];
-      const direction = match[3].toLowerCase();
-      const rawMerchant = match[4].trim();
-      const upiTransactionId = match[5];
-      const paymentAccount = match[6].trim();
-      const amountStr = match[7];
+      const day = parseInt(match[1]);
+      const monthName = match[2].replace(/,/g, '').toLowerCase().substring(0, 3);
+      const year = parseInt(match[3]);
+      const timeStr = `${match[4]} ${match[5]}`;
+      const direction = match[6].toLowerCase();
+      const rawMerchant = match[7].trim();
+      const upiTransactionId = match[8];
+      const paymentAccount = match[9].trim();
+      const amountStr = match[10];
 
-      // Parse date: "02 May, 2026"
-      const parts = dateStr.split(/\s+/);
-      if (parts.length < 3) throw new Error(`Invalid date format: ${dateStr}`);
-      const day = parseInt(parts[0]);
-      const monthName = parts[1].replace(/,/g, '').toLowerCase().substring(0, 3);
+      // Parse date
       const month = MONTHS[monthName];
-      const year = parseInt(parts[2]);
       if (isNaN(day) || month === undefined || isNaN(year)) {
         throw new Error(`Invalid date components: day=${day}, monthName=${monthName}, year=${year}`);
       }
@@ -150,7 +147,7 @@ function parseGooglePay(rawText) {
 
       // Default every transaction to "DEBIT" unless the block contains "Received from" instead of "Paid to"
       // in that case treat it as "CREDIT"
-      const transactionType = direction === 'received from' ? 'CREDIT' : 'DEBIT';
+      const transactionType = direction.includes('received') ? 'CREDIT' : 'DEBIT';
 
       let merchantClean = stripEmojis(rawMerchant);
       merchantClean = cleanMerchant(merchantClean);
@@ -200,26 +197,23 @@ function parsePaytm(rawText) {
   }
 
   // Regex matches Paytm transaction blocks
-  const PAYTM_REGEX = /(\d{1,2}\s+[A-Za-z]{3})\s+(\d{1,2}:\d{2}\s+(?:AM|PM|am|pm))\s+(Paid to|Received from|Refund from|Paid by|Credited to)\s+(.+?)\s+UPI ID:\s*(.+?)\s+on Paytm\s+(?:Tag:\s*.+?\s+)?(.+?)\s+([+-])\s*(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d+)?)\s+UPI Ref No:\s*(\d+)/gi;
+  const PAYTM_REGEX = /(\d{1,2})\s*([A-Za-z]{3})\s+(\d{1,2}:\d{2})\s*([AP]M|am|pm)\s+(Paid\s*to|Received\s*from|Refund\s*from|Paid\s*by|Credited\s*to)\s*(.+?)\s+UPI\s*ID\s*:\s*(.+?)\s+on\s*Paytm\s+(?:Tag\s*:\s*.+?\s+)?(.+?)\s+([+-])\s*(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d+)?)\s+UPI\s*Ref\s*No\s*:\s*(\d+)/gi;
 
   const transactions = [];
   let match;
   while ((match = PAYTM_REGEX.exec(cleanText)) !== null) {
     try {
-      const dateStr = match[1]; // e.g. "04 Jun"
-      const timeStr = match[2];
-      const merchantRaw = match[4].trim();
-      const upiId = match[5].trim();
-      const paymentAccount = match[6].trim();
-      const sign = match[7];
-      const amountStr = match[8];
-      const referenceNumber = match[9];
+      const day = parseInt(match[1]);
+      const monthName = match[2].toLowerCase().substring(0, 3);
+      const timeStr = `${match[3]} ${match[4]}`;
+      const merchantRaw = match[6].trim();
+      const upiId = match[7].trim();
+      const paymentAccount = match[8].trim();
+      const sign = match[9];
+      const amountStr = match[10];
+      const referenceNumber = match[11];
 
-      // Parse date: "04 Jun" + extracted year
-      const parts = dateStr.split(/\s+/);
-      if (parts.length < 2) throw new Error(`Invalid date format: ${dateStr}`);
-      const day = parseInt(parts[0]);
-      const monthName = parts[1].toLowerCase().substring(0, 3);
+      // Parse date
       const month = MONTHS[monthName];
       if (isNaN(day) || month === undefined) {
         throw new Error(`Invalid date components: day=${day}, monthName=${monthName}`);
