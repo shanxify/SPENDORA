@@ -387,7 +387,7 @@ const Dashboard = () => {
                       amount={stats.totals.net} 
                       icon={Activity}
                       colorClass={{ text: 'text-accent', bg: 'bg-accent/10', bgBar: 'bg-accent/20', bgFill: 'bg-accent/60' }}
-                      subtext={openingBalance > 0 ? `Includes opening ₹${openingBalance}` : undefined}
+                      subtext={openingBalance > 0 ? `Includes opening ₹${openingBalance}` : 'Tap to add starting balance'}
                       hideBar={true}
                     />
                   </div>
