@@ -114,24 +114,52 @@ function extractTransactions(rawText) {
 
 function parseGooglePay(rawText) {
   const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const GPAY_REGEX = /(\d{1,2})\s*([A-Za-z]+),\s*(\d{4})\s+(\d{1,2}:\d{2})\s*([AP]M|am|pm)\s+(Paid\s*to|Received\s*from)\s*(.+?)\s+UPI\s*Transaction\s*ID\s*:\s*(\d+)\s+(?:Paid\s*by|Received\s*in|Deposit\s*to|Credited\s*to)?\s*(.+?)\s*(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d+)?)/gi;
+  const lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+
+  const txBlocks = [];
+  let currentBlock = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const isDate = /^\d{1,2}\s*[A-Za-z]+,\s*\d{4}$/.test(line);
+    const isNextTime = i + 1 < lines.length && /^\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)$/i.test(lines[i + 1]);
+
+    if (isDate && isNextTime) {
+      if (currentBlock) {
+        txBlocks.push(currentBlock);
+      }
+      currentBlock = [];
+    }
+
+    if (currentBlock) {
+      currentBlock.push(line);
+    }
+  }
+  if (currentBlock) {
+    txBlocks.push(currentBlock);
+  }
 
   const transactions = [];
-  let match;
-  while ((match = GPAY_REGEX.exec(cleanText)) !== null) {
-    try {
-      const day = parseInt(match[1]);
-      const monthName = match[2].replace(/,/g, '').toLowerCase().substring(0, 3);
-      const year = parseInt(match[3]);
-      const timeStr = `${match[4]} ${match[5]}`;
-      const direction = match[6].toLowerCase();
-      const rawMerchant = match[7].trim();
-      const upiTransactionId = match[8];
-      const paymentAccount = match[9].trim();
-      const amountStr = match[10];
 
-      // Parse date
+  for (const block of txBlocks) {
+    try {
+      const dateLine = block.find(l => /^\d{1,2}\s*[A-Za-z]+,\s*\d{4}$/.test(l));
+      const timeLine = block.find(l => /^\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)$/i.test(l));
+      const merchantLine = block.find(l => /^(?:Paid\s*to|Received\s*from)/i.test(l));
+      const txIdLine = block.find(l => /UPI\s*Transaction\s*ID\s*:/i.test(l));
+      const accountLine = block.find(l => /^(?:Paid\s*by|Received\s*in|Deposit\s*to|Credited\s*to)/i.test(l));
+      const amountLine = block.find(l => /(?:₹|Rs\.?|INR)\s*[\d,]+/i.test(l));
+
+      if (!dateLine || !amountLine) {
+        continue;
+      }
+
+      const dateMatch = dateLine.match(/^(\d{1,2})\s*([A-Za-z]+),\s*(\d{4})$/);
+      if (!dateMatch) throw new Error("Invalid date format: " + dateLine);
+      const day = parseInt(dateMatch[1]);
+      const monthName = dateMatch[2].toLowerCase().substring(0, 3);
       const month = MONTHS[monthName];
+      const year = parseInt(dateMatch[3]);
       if (isNaN(day) || month === undefined || isNaN(year)) {
         throw new Error(`Invalid date components: day=${day}, monthName=${monthName}, year=${year}`);
       }
@@ -139,15 +167,36 @@ function parseGooglePay(rawText) {
       dateObj = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000));
       const formattedDate = dateObj.toISOString().split('T')[0];
 
-      // Parse amount
-      const amount = parseFloat(amountStr.replace(/,/g, ''));
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error(`Invalid amount: ${amountStr}`);
+      const time = timeLine ? timeLine.trim() : '';
+
+      let rawMerchant = 'Unknown Merchant';
+      let direction = 'debit';
+      if (merchantLine) {
+        if (/^Received\s*from/i.test(merchantLine)) {
+          direction = 'credit';
+          rawMerchant = merchantLine.replace(/^Received\s*from\s*/i, '').trim();
+        } else {
+          direction = 'debit';
+          rawMerchant = merchantLine.replace(/^Paid\s*to\s*/i, '').trim();
+        }
       }
 
-      // Default every transaction to "DEBIT" unless the block contains "Received from" instead of "Paid to"
-      // in that case treat it as "CREDIT"
-      const transactionType = direction.includes('received') ? 'CREDIT' : 'DEBIT';
+      let upiTransactionId = null;
+      if (txIdLine) {
+        const txIdMatch = txIdLine.match(/UPI\s*Transaction\s*ID\s*:\s*(\d+)/i);
+        if (txIdMatch) upiTransactionId = txIdMatch[1];
+      }
+
+      let paymentAccount = '';
+      if (accountLine) {
+        paymentAccount = accountLine.replace(/^(?:Paid\s*by|Received\s*in|Deposit\s*to|Credited\s*to)\s*/i, '').trim();
+      }
+
+      const amtMatch = amountLine.match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d+)?)/i);
+      if (!amtMatch) throw new Error("Amount match failed: " + amountLine);
+      const amount = parseFloat(amtMatch[1].replace(/,/g, ''));
+
+      const transactionType = direction === 'credit' ? 'CREDIT' : 'DEBIT';
 
       let merchantClean = stripEmojis(rawMerchant);
       merchantClean = cleanMerchant(merchantClean);
@@ -156,7 +205,7 @@ function parseGooglePay(rawText) {
         id: uuidv4(),
         provider: "GPAY",
         date: formattedDate,
-        time: timeStr,
+        time: time,
         merchant: merchantClean,
         normalizedMerchant: normalizeMerchant(merchantClean),
         amount: amount,
@@ -170,7 +219,7 @@ function parseGooglePay(rawText) {
         status: 'Success'
       });
     } catch (err) {
-      console.warn('Skipping GPay transaction due to parsing error:', err.message);
+      console.warn("Skipping GPay transaction due to parsing error:", err.message);
     }
   }
 
@@ -178,11 +227,8 @@ function parseGooglePay(rawText) {
 }
 
 function parsePaytm(rawText) {
-  const cleanText = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
   // Extract year from header
-  // e.g. "19 MAY'26 - 18 JUN'26" or "19 MAY'2026 - 18 JUN'2026"
-  const headerMatch = cleanText.match(/(\d{1,2}\s+[A-Za-z]+'?\d{2,4})\s*-\s*(\d{1,2}\s+[A-Za-z]+'?\d{2,4})/i);
+  const headerMatch = rawText.match(/(\d{1,2}\s+[A-Za-z]+'?\d{2,4})\s*-\s*(\d{1,2}\s+[A-Za-z]+'?\d{2,4})/i);
   let year = new Date().getFullYear();
   if (headerMatch) {
     const endRange = headerMatch[2];
@@ -196,39 +242,85 @@ function parsePaytm(rawText) {
     }
   }
 
-  // Regex matches Paytm transaction blocks
-  const PAYTM_REGEX = /(\d{1,2})\s*([A-Za-z]{3})\s+(\d{1,2}:\d{2})\s*([AP]M|am|pm)\s+(Paid\s*to|Received\s*from|Refund\s*from|Paid\s*by|Credited\s*to)\s*(.+?)\s+UPI\s*ID\s*:\s*(.+?)\s+on\s*Paytm\s+(?:Tag\s*:\s*.+?\s+)?(.+?)\s+([+-])\s*(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d+)?)\s+UPI\s*Ref\s*No\s*:\s*(\d+)/gi;
+  const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  
+  const txBlocks = [];
+  let currentBlock = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const isDate = /^\d{1,2}\s+[A-Za-z]{3}$/.test(line);
+    const isNextTime = i + 1 < lines.length && /^\d{1,2}:\d{2}\s+(?:AM|PM|am|pm)$/i.test(lines[i + 1]);
+
+    if (isDate && isNextTime) {
+      if (currentBlock) {
+        txBlocks.push(currentBlock);
+      }
+      currentBlock = [];
+    }
+
+    if (currentBlock) {
+      currentBlock.push(line);
+    }
+  }
+  if (currentBlock) {
+    txBlocks.push(currentBlock);
+  }
 
   const transactions = [];
-  let match;
-  while ((match = PAYTM_REGEX.exec(cleanText)) !== null) {
-    try {
-      const day = parseInt(match[1]);
-      const monthName = match[2].toLowerCase().substring(0, 3);
-      const timeStr = `${match[3]} ${match[4]}`;
-      const merchantRaw = match[6].trim();
-      const upiId = match[7].trim();
-      const paymentAccount = match[8].trim();
-      const sign = match[9];
-      const amountStr = match[10];
-      const referenceNumber = match[11];
 
-      // Parse date
+  for (const block of txBlocks) {
+    try {
+      const dateLine = block.find(l => /^\d{1,2}\s+[A-Za-z]{3}$/.test(l));
+      const timeLine = block.find(l => /^\d{1,2}:\d{2}\s+(?:AM|PM|am|pm)$/i.test(l));
+      const merchantLine = block.find(l => /^(?:Paid\s*to|Received\s*from|Refund\s*from)\s+/i.test(l));
+      const upiIdLine = block.find(l => /UPI\s*ID\s*:/i.test(l));
+      const refNoLine = block.find(l => /UPI\s*Ref\s*No\s*:/i.test(l));
+      const amountLine = block.find(l => /[+-]\s*(?:Rs\.?|INR|₹)\s*[\d,]+/i.test(l));
+
+      if (!dateLine || !amountLine) {
+        continue;
+      }
+
+      const dateParts = dateLine.split(/\s+/);
+      const day = parseInt(dateParts[0]);
+      const monthName = dateParts[1].toLowerCase().substring(0, 3);
       const month = MONTHS[monthName];
       if (isNaN(day) || month === undefined) {
         throw new Error(`Invalid date components: day=${day}, monthName=${monthName}`);
       }
 
-      // Dec->Jan edge case: default to header's end-year (known limitation)
       let dateObj = new Date(year, month, day);
       dateObj = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000));
       const formattedDate = dateObj.toISOString().split('T')[0];
 
-      // Parse amount
-      const amount = parseFloat(amountStr.replace(/,/g, ''));
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error(`Invalid amount: ${amountStr}`);
+      const time = timeLine ? timeLine.trim() : '';
+
+      const merchantRaw = merchantLine ? merchantLine.replace(/^(?:Paid\s*to|Received\s*from|Refund\s*from)\s+/i, '').trim() : 'Unknown';
+
+      let upiId = null;
+      if (upiIdLine) {
+        upiId = upiIdLine.replace(/UPI\s*ID\s*:\s*/i, '').replace(/\s+on\s*$/i, '').replace(/\s+on\s+Paytm\s*$/i, '').trim();
       }
+
+      let referenceNumber = null;
+      if (refNoLine) {
+        const refMatch = refNoLine.match(/UPI\s*Ref\s*No\s*:\s*(\d+)/i);
+        if (refMatch) referenceNumber = refMatch[1];
+      }
+
+      const amtMatch = amountLine.match(/([+-])\s*(?:Rs\.?|INR|₹)\s*([\d,]+(?:\.\d+)?)/i);
+      if (!amtMatch) throw new Error("Amount match failed: " + amountLine);
+      const sign = amtMatch[1];
+      const amount = parseFloat(amtMatch[2].replace(/,/g, ''));
+
+      const accountLines = block.filter(l => {
+        if (l === dateLine || l === timeLine || l === merchantLine || l === upiIdLine || l === refNoLine || l === amountLine) return false;
+        if (/^Tag\s*:/i.test(l)) return false;
+        if (/^#/i.test(l)) return false;
+        return true;
+      });
+      const paymentAccount = accountLines.join(' ').trim();
 
       const transactionType = sign === '+' ? 'CREDIT' : 'DEBIT';
 
@@ -239,7 +331,7 @@ function parsePaytm(rawText) {
         id: uuidv4(),
         provider: "PAYTM",
         date: formattedDate,
-        time: timeStr,
+        time: time,
         merchant: merchantClean,
         normalizedMerchant: normalizeMerchant(merchantClean),
         amount: amount,
@@ -254,7 +346,7 @@ function parsePaytm(rawText) {
         status: 'Success'
       });
     } catch (err) {
-      console.warn('Skipping Paytm transaction due to parsing error:', err.message);
+      console.warn("Skipping Paytm transaction due to parsing error:", err.message);
     }
   }
 
