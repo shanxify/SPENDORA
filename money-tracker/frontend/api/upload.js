@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const { createClient } = require('@supabase/supabase-js');
-const { extractTransactions } = require('./transactionExtractor');
+const { extractTransactions, parseGooglePay, parsePaytm, parseGeneric } = require('./transactionExtractor');
 
 async function getAuthenticatedClient(req) {
   const authHeader = req.headers.authorization;
@@ -51,14 +51,34 @@ app.post('*', upload.single('file'), async (req, res) => {
 
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
+    const provider = req.body.provider;
+    if (!provider || !['phonepe', 'gpay', 'paytm', 'others'].includes(provider)) {
+      return res.status(400).json({ error: 'Invalid or missing provider' });
+    }
+
     const pdfData = await pdfParse(req.file.buffer);
     const rawText = pdfData.text;
     if (!rawText || rawText.trim().length < 50)
       return res.status(422).json({ error: 'PDF appears empty or unreadable' });
 
-    const extractedTransactions = extractTransactions(rawText);
-    if (extractedTransactions.length === 0)
-      return res.status(422).json({ error: 'No transactions found. Make sure this is a PhonePe statement PDF.' });
+    let extractedTransactions = [];
+    if (provider === 'phonepe') {
+      extractedTransactions = extractTransactions(rawText);
+      if (extractedTransactions.length === 0)
+        return res.status(422).json({ error: 'No transactions found. Make sure this is a PhonePe statement PDF.' });
+    } else if (provider === 'gpay') {
+      extractedTransactions = parseGooglePay(rawText);
+      if (extractedTransactions.length === 0)
+        return res.status(422).json({ error: 'No transactions found. Make sure this is a Google Pay statement PDF.' });
+    } else if (provider === 'paytm') {
+      extractedTransactions = parsePaytm(rawText);
+      if (extractedTransactions.length === 0)
+        return res.status(422).json({ error: 'No transactions found. Make sure this is a Paytm statement PDF.' });
+    } else if (provider === 'others') {
+      extractedTransactions = parseGeneric(rawText);
+      if (extractedTransactions.length === 0)
+        return res.status(422).json({ error: 'Generic parser not yet implemented' });
+    }
 
     const { data: existingData } = await supabase
       .from('transactions')

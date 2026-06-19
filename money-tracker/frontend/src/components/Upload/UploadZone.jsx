@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { UploadCloud, File, X, CheckCircle, AlertCircle } from 'lucide-react';
 
-const UploadZone = ({ onUploadSuccess }) => {
+const UploadZone = ({ onUploadSuccess, provider }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ const UploadZone = ({ onUploadSuccess }) => {
   const validateFile = (file) => {
     if (!file) return false;
     if (file.type !== 'application/pdf') {
-      setError('Only PDF files are accepted. Please upload a PhonePe statement.');
+      setError('Only PDF files are accepted. Please upload a valid statement PDF.');
       return false;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -125,16 +125,25 @@ const UploadZone = ({ onUploadSuccess }) => {
     );
   }
 
+  const providerNames = {
+    phonepe: 'PhonePe',
+    gpay: 'Google Pay',
+    paytm: 'Paytm',
+    others: 'statement'
+  };
+  const providerName = providerNames[provider] || 'statement';
+
   return (
     <div className="max-w-3xl mx-auto w-full">
       <div 
         className={`glass-panel p-6 sm:p-10 border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] ${
+          !provider ? 'opacity-40 cursor-not-allowed border-border-light' : 
           isDragging ? 'border-accent bg-accent/5' : 'border-border-light hover:border-text-muted'
         }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
+        onDragEnter={provider ? handleDrag : undefined}
+        onDragLeave={provider ? handleDrag : undefined}
+        onDragOver={provider ? handleDrag : undefined}
+        onDrop={provider ? handleDrop : undefined}
       >
         <input 
           type="file" 
@@ -142,18 +151,31 @@ const UploadZone = ({ onUploadSuccess }) => {
           className="hidden" 
           accept="application/pdf"
           onChange={handleFileSelect}
+          disabled={!provider}
         />
         
-        {!file ? (
+        {!provider ? (
+          <>
+            <div className="w-20 h-20 rounded-full bg-secondary-bg flex items-center justify-center mb-6 shadow-xl">
+              <UploadCloud className="w-10 h-10 text-text-muted" />
+            </div>
+            <h3 className="text-2xl font-syne font-bold mb-3 text-text-muted text-center">
+              Select a provider first
+            </h3>
+            <p className="text-text-muted mb-8 text-center max-w-sm">
+              Please choose a statement provider from the options above before uploading.
+            </p>
+          </>
+        ) : !file ? (
           <>
             <div className="w-20 h-20 rounded-full bg-secondary-bg flex items-center justify-center mb-6 shadow-xl">
               <UploadCloud className="w-10 h-10 text-accent" />
             </div>
             <h3 className="text-2xl font-syne font-bold mb-3 text-text-primary text-center">
-              Drag & drop your PhonePe PDF
+              Drag & drop your {providerName} PDF
             </h3>
             <p className="text-text-muted mb-8 text-center max-w-sm">
-              Upload your PhonePe statement here. Only PDF files are supported.
+              Upload your {providerName} statement here. Only PDF files are supported.
             </p>
             
             <div className="flex items-center gap-4 w-full max-w-sm">

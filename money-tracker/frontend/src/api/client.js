@@ -23,9 +23,12 @@ api.interceptors.request.use(async (config) => {
 });
 
 export const Client = {
-  uploadPDF: async (file) => {
+  uploadPDF: async (file, provider) => {
     const formData = new FormData();
     formData.append('file', file);
+    if (provider) {
+      formData.append('provider', provider);
+    }
     const response = await api.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
