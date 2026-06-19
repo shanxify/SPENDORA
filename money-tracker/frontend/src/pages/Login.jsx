@@ -40,7 +40,7 @@ export default function Login() {
           Welcome to SpendX
         </h1>
         <p style={{ color: '#8b8b9e', fontSize: '14px', marginBottom: '32px' }}>
-          Sign in to track your PhonePe transactions
+          Sign in to take control of your spending
         </p>
 
         <button
