@@ -66,12 +66,13 @@ const SpendingPieChart = ({ data }) => {
             dataKey="total"
             onClick={handleClick}
             className="cursor-pointer outline-none"
-            stroke="none"
           >
             {data.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={entry.color || '#95A5A6'} 
+                stroke={entry.color || '#95A5A6'}
+                strokeWidth={1.5}
                 className="hover:opacity-80 transition-opacity duration-300 outline-none"
               />
             ))}
