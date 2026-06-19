@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/seed-categories(.*)", "destination": "/api/seed-categories.js" },
     { "source": "/api/categories(.*)", "destination": "/api/categories.js" },
     { "source": "/api/merchants(.*)", "destination": "/api/merchants.js" },
     { "source": "/api/stats(.*)", "destination": "/api/stats.js" },

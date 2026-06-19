@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import Client from '../api/client';
 
 const AuthContext = createContext();
 
@@ -19,9 +20,16 @@ export function AuthProvider({ children }) {
     });
 
     // Listen for auth changes (login/logout)
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
+
+      if (currentUser && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        Client.seedCategories().catch(err => {
+          console.error('Error seeding default categories:', err);
+        });
+      }
     });
 
     return () => {

@@ -7,14 +7,21 @@ import CategoryManager from '../components/Categories/CategoryManager';
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchCategories = async () => {
     try {
+      setErrorMsg(null);
       const data = await Client.getCategories();
-      // Always ensure we set an array — never an error object
-      setCategories(Array.isArray(data) ? data : []);
+      if (data && data.error) {
+        setErrorMsg(data.error);
+        setCategories([]);
+      } else {
+        setCategories(Array.isArray(data) ? data : []);
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
+      setErrorMsg(error.response?.data?.error || error.message);
       setCategories([]);
     } finally {
       setLoading(false);
@@ -60,6 +67,11 @@ const Categories = () => {
       />
       
       <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-300" style={{ padding: '24px 40px' }}>
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            <strong>Error:</strong> {errorMsg}
+          </div>
+        )}
         {loading ? (
           <div className="w-full flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-accent/30 border-t-accent rounded-full animate-spin" />

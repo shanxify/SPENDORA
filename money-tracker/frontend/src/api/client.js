@@ -2,7 +2,7 @@ import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:5001/api'),
+  baseURL: process.env.REACT_APP_API_URL || '/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
@@ -56,6 +56,11 @@ export const Client = {
 
   clearTransactions: async () => {
     const response = await api.delete('/transactions/clear');
+    return response.data;
+  },
+
+  seedCategories: async () => {
+    const response = await api.post('/seed-categories');
     return response.data;
   },
 
