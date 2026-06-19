@@ -83,8 +83,8 @@ const Sidebar = () => {
           <div ref={menuRef} className="relative flex flex-col">
             <button
               onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-              className={`w-full flex items-center justify-between p-3 bg-[#0c0c14] border border-[#22222e] hover:bg-[#12121c] transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${
-                isAccountMenuOpen ? 'rounded-t-xl rounded-b-none border-b-0' : 'rounded-xl'
+              className={`w-full flex items-center justify-between p-3 bg-[#0c0c14] border border-[#22222E] hover:bg-[#12121c] transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500/20 ${
+                isAccountMenuOpen ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'
               }`}
               aria-expanded={isAccountMenuOpen}
               aria-label="Account menu"
@@ -120,7 +120,7 @@ const Sidebar = () => {
             </button>
 
             {isAccountMenuOpen && (
-              <div className="bg-[#0c0c14] border-x border-b border-[#22222e] rounded-b-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="bg-[#0c0c14] border-x border-b border-[#22222E] rounded-b-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                 <button
                   onClick={() => {
                     setIsAccountMenuOpen(false);
