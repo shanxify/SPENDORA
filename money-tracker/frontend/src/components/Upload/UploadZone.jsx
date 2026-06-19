@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { UploadCloud, File, X, CheckCircle, AlertCircle } from 'lucide-react';
 
-const UploadZone = ({ onUploadSuccess, provider }) => {
+const UploadZone = ({ onUploadSuccess }) => {
+  const [provider, setProvider] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -61,7 +62,7 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
     setError('');
     
     try {
-      const data = await onUploadSuccess(file);
+      const data = await onUploadSuccess(file, provider);
       setResult(data);
     } catch (err) {
       const errMsg = err.response?.data?.error || err.message || 'An error occurred during upload.';
@@ -143,7 +144,7 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
     <div className="max-w-3xl mx-auto w-full">
       <div 
         className={`glass-panel p-6 sm:p-10 border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center min-h-[400px] ${
-          !provider ? 'opacity-40 cursor-not-allowed border-border-light' : 
+          !provider ? 'border-border-light' :
           isDragging ? 'border-accent bg-accent/5' : 'border-border-light hover:border-text-muted'
         }`}
         onDragEnter={provider ? handleDrag : undefined}
@@ -160,28 +161,53 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
           disabled={!provider}
         />
         
-        {!provider ? (
+        {!file ? (
           <>
-            <div className="w-20 h-20 rounded-full bg-secondary-bg flex items-center justify-center mb-6 shadow-xl">
-              <UploadCloud className="w-10 h-10 text-text-muted" />
+            {/* Merged Provider Selector inside dashed box */}
+            <div className="w-full mb-10 border-b border-border pb-8">
+              <label className="block text-text-secondary text-[13px] font-medium mb-3 text-center sm:text-left">
+                Select statement provider
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { id: 'phonepe', name: 'PhonePe' },
+                  { id: 'gpay', name: 'Google Pay' },
+                  { id: 'paytm', name: 'Paytm' },
+                  { id: 'others', name: 'Others' }
+                ].map((p) => {
+                  const isSelected = provider === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProvider(p.id);
+                      }}
+                      className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-200 text-center ${
+                        isSelected
+                          ? 'bg-accent border-accent text-white shadow-[0_0_15px_rgba(124,58,237,0.25)]'
+                          : 'bg-[#0c0c14] border-white/10 text-text-secondary hover:text-text-primary hover:border-white/20'
+                      }`}
+                    >
+                      {p.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <h3 className="text-2xl font-syne font-bold mb-3 text-text-muted text-center">
-              Select a provider first
+
+            {/* Dynamic upload body */}
+            <div className="w-20 h-20 rounded-full bg-secondary-bg flex items-center justify-center mb-6 shadow-xl">
+              <UploadCloud className={`w-10 h-10 ${provider ? 'text-accent' : 'text-text-muted'}`} />
+            </div>
+            <h3 className={`text-2xl font-syne font-bold mb-3 text-center ${provider ? 'text-text-primary' : 'text-text-muted'}`}>
+              {!provider ? 'Select a provider first' : `Drag & drop your ${providerName} PDF`}
             </h3>
             <p className="text-text-muted mb-8 text-center max-w-sm">
-              Please choose a statement provider from the options above before uploading.
-            </p>
-          </>
-        ) : !file ? (
-          <>
-            <div className="w-20 h-20 rounded-full bg-secondary-bg flex items-center justify-center mb-6 shadow-xl">
-              <UploadCloud className="w-10 h-10 text-accent" />
-            </div>
-            <h3 className="text-2xl font-syne font-bold mb-3 text-text-primary text-center">
-              Drag & drop your {providerName} PDF
-            </h3>
-            <p className="text-text-muted mb-8 text-center max-w-sm">
-              Upload your {providerName} statement here. Only PDF files are supported.
+              {!provider 
+                ? 'Please choose a statement provider from the options above before uploading.' 
+                : `Upload your ${providerName} statement here. Only PDF files are supported.`}
             </p>
             
             <div className="flex items-center gap-4 w-full max-w-sm">
@@ -191,8 +217,8 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
             </div>
             
             <label 
-              htmlFor="file-upload" 
-              className="mt-8 btn-secondary cursor-pointer"
+              htmlFor={provider ? "file-upload" : undefined}
+              className={`mt-8 btn-secondary ${provider ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
             >
               Choose File
             </label>
