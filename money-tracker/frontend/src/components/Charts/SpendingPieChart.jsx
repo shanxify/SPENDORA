@@ -63,7 +63,6 @@ const SpendingPieChart = ({ data }) => {
             cy="50%"
             innerRadius={70}
             outerRadius={95}
-            paddingAngle={3}
             dataKey="total"
             onClick={handleClick}
             className="cursor-pointer outline-none"
