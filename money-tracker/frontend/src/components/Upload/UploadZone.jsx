@@ -64,7 +64,13 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
       const data = await onUploadSuccess(file);
       setResult(data);
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'An error occurred during upload.');
+      const errMsg = err.response?.data?.error || err.message || 'An error occurred during upload.';
+      const debugText = err.response?.data?.debugText;
+      if (debugText) {
+        setError(`${errMsg}\n\n[DEBUG TEXT FROM PDF]:\n${debugText}`);
+      } else {
+        setError(errMsg);
+      }
     } finally {
       setIsUploading(false);
     }
@@ -229,7 +235,7 @@ const UploadZone = ({ onUploadSuccess, provider }) => {
       {error && (
         <div className="mt-6 flex items-start gap-3 p-4 bg-danger-bg border border-danger/20 rounded-xl text-danger animate-in fade-in slide-in-from-top-4">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p className="text-sm font-medium">{error}</p>
+          <p className="text-sm font-medium whitespace-pre-wrap">{error}</p>
         </div>
       )}
     </div>

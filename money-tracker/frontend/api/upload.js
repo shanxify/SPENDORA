@@ -65,15 +65,24 @@ app.post('*', upload.single('file'), async (req, res) => {
     if (provider === 'phonepe') {
       extractedTransactions = extractTransactions(rawText);
       if (extractedTransactions.length === 0)
-        return res.status(422).json({ error: 'No transactions found. Make sure this is a PhonePe statement PDF.' });
+        return res.status(422).json({ 
+          error: 'No transactions found. Make sure this is a PhonePe statement PDF.',
+          debugText: rawText.substring(0, 1500)
+        });
     } else if (provider === 'gpay') {
       extractedTransactions = parseGooglePay(rawText);
       if (extractedTransactions.length === 0)
-        return res.status(422).json({ error: 'No transactions found. Make sure this is a Google Pay statement PDF.' });
+        return res.status(422).json({ 
+          error: 'No transactions found. Make sure this is a Google Pay statement PDF.',
+          debugText: rawText.substring(0, 1500)
+        });
     } else if (provider === 'paytm') {
       extractedTransactions = parsePaytm(rawText);
       if (extractedTransactions.length === 0)
-        return res.status(422).json({ error: 'No transactions found. Make sure this is a Paytm statement PDF.' });
+        return res.status(422).json({ 
+          error: 'No transactions found. Make sure this is a Paytm statement PDF.',
+          debugText: rawText.substring(0, 1500)
+        });
     } else if (provider === 'others') {
       extractedTransactions = parseGeneric(rawText);
       if (extractedTransactions.length === 0)
