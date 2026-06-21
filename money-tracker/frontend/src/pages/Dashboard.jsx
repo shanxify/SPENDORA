@@ -560,7 +560,7 @@ const Dashboard = () => {
           </p>
           <button
             onClick={() => setIsFeedbackOpen(true)}
-            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-purple-400 transition-colors duration-300"
+            className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition duration-300"
           >
             <Mail className="w-3.5 h-3.5" />
             <span>Send feedback</span>
