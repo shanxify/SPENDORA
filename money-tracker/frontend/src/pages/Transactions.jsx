@@ -229,42 +229,36 @@ const Transactions = () => {
           />
         )}
 
-        <div className="flex justify-between items-center mt-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1 || loading || filteredTransactions.length === 0}
+            className="w-full sm:w-auto px-4 sm:px-5 py-2 text-sm rounded-lg font-medium transition-colors"
             style={{
-              padding: '8px 20px',
               backgroundColor: (currentPage === 1 || filteredTransactions.length === 0) ? 'transparent' : '#6C63FF',
               color: (currentPage === 1 || filteredTransactions.length === 0) ? '#606080' : 'white',
               border: `1px solid ${(currentPage === 1 || filteredTransactions.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
-              borderRadius: '8px',
               cursor: (currentPage === 1 || filteredTransactions.length === 0) ? 'not-allowed' : 'pointer',
               opacity: (currentPage === 1 || filteredTransactions.length === 0) ? 0.5 : 1,
-              fontSize: '14px',
-              fontWeight: '500'
             }}
           >
             ← Previous
           </button>
 
-          <span style={{ color: '#A0A0B8', fontSize: '14px' }}>
-            Page {currentPage} of {computedTotalPages} &nbsp;|&nbsp; {filteredTransactions.length} transactions
-          </span>
+          <p className="text-xs sm:text-sm text-text-muted text-center order-first sm:order-none">
+            Page {currentPage} of {computedTotalPages} <span className="mx-1">|</span> {filteredTransactions.length} transactions
+          </p>
 
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, computedTotalPages))}
             disabled={currentPage === computedTotalPages || computedTotalPages === 0 || loading || filteredTransactions.length === 0}
+            className="w-full sm:w-auto px-4 sm:px-5 py-2 text-sm rounded-lg font-medium transition-colors"
             style={{
-              padding: '8px 20px',
               backgroundColor: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 'transparent' : '#6C63FF',
               color: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? '#606080' : 'white',
               border: `1px solid ${(currentPage === computedTotalPages || filteredTransactions.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
-              borderRadius: '8px',
               cursor: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 'not-allowed' : 'pointer',
               opacity: (currentPage === computedTotalPages || filteredTransactions.length === 0) ? 0.5 : 1,
-              fontSize: '14px',
-              fontWeight: '500'
             }}
           >
             Next →

@@ -48,7 +48,8 @@ const TransactionTable = ({ transactions, categories, onUpdateCategory, onDelete
       colors={['#7c3aed']}
     >
       <div className="w-full rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-secondary-bg/50 border-b border-border">
@@ -129,6 +130,52 @@ const TransactionTable = ({ transactions, categories, onUpdateCategory, onDelete
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="sm:hidden space-y-3 p-4">
+          {transactions.map(tx => {
+            const isDebit = tx.type === 'debit';
+            const isFailed = tx.status === 'Failed';
+            
+            return (
+              <div key={tx.id} className="bg-card border border-border rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-text-primary truncate capitalize">
+                      {tx.merchant.toLowerCase()}
+                    </p>
+                    <p className="text-xs text-text-muted mt-1">
+                      {formatDate(tx.date)} • {tx.category || 'Uncategorized'}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className={`text-sm font-semibold number-font ${isFailed ? 'text-text-muted line-through' : isDebit ? 'text-danger' : 'text-success'}`}>
+                      {isDebit ? '-' : '+'}{formatCurrency(tx.amount)}
+                    </span>
+                    {isFailed ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-danger-bg text-danger uppercase tracking-wider font-medium">
+                        FAILED
+                      </span>
+                    ) : (
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-medium ${isDebit ? 'bg-danger-bg text-danger' : 'bg-success-bg text-success'}`}>
+                        {tx.type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end mt-3 pt-3 border-t border-border/50">
+                  <button 
+                    onClick={() => onDelete(tx.id)}
+                    className="text-danger/70 hover:text-danger p-1.5 rounded-lg hover:bg-danger-bg transition-colors"
+                    title="Delete Transaction"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </BorderGlow>

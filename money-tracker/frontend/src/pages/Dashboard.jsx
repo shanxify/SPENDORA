@@ -476,7 +476,7 @@ const Dashboard = () => {
 
             {/* LISTS */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[400px]">
-              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-[350px] lg:h-full shadow-md">
+              <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-6 overflow-hidden flex flex-col h-auto sm:h-[350px] lg:h-full shadow-md">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-lg font-medium text-white">
                     {breakdownType === 'expenses' ? 'Expense Categories' : 'Income Sources'}

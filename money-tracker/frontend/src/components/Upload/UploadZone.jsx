@@ -233,10 +233,10 @@ const UploadZone = ({ onUploadSuccess }) => {
               {(file.size / (1024 * 1024)).toFixed(2)} MB
             </p>
             
-            <div className="flex w-full gap-3">
+            <div className="flex flex-col sm:flex-row w-full gap-3">
               <button 
                 onClick={() => setFile(null)} 
-                className="flex-1 py-2 px-4 rounded-lg bg-card border border-border text-text-muted hover:text-text-primary transition-colors"
+                className="w-full sm:flex-1 min-w-0 py-2 px-4 rounded-lg bg-card border border-border text-text-muted hover:text-text-primary transition-colors order-2 sm:order-1"
                 disabled={isUploading}
               >
                 Cancel
@@ -244,7 +244,7 @@ const UploadZone = ({ onUploadSuccess }) => {
               <button 
                 onClick={handleUpload}
                 disabled={isUploading}
-                className="flex-1 btn-primary flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 min-w-0 btn-primary flex items-center justify-center gap-2 order-1 sm:order-2"
               >
                 {isUploading ? (
                   <>

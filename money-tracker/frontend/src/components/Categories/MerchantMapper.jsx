@@ -142,7 +142,8 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-secondary-bg/50 border-b border-border">
@@ -240,6 +241,93 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Cards View */}
+      <div className="sm:hidden space-y-3 p-4">
+        {sortedMerchants.length === 0 ? (
+          <div className="py-8 text-center text-text-muted text-sm">
+            No merchants found
+          </div>
+        ) : (
+          sortedMerchants.map(m => {
+            const isUncategorized = m.category === 'Uncategorized';
+            const isSelected = selectedIds.has(m.normalized);
+            const isCredit = m.type?.toLowerCase() === 'credit';
+            
+            return (
+              <div key={m.normalized} className={`bg-card border border-border rounded-xl p-4 transition-colors ${isSelected ? 'bg-accent/5' : ''}`}>
+                <div className="flex items-start gap-3">
+                  {/* Selection Checkbox */}
+                  <button onClick={() => toggleSelect(m.normalized)} className="text-text-muted hover:text-text-primary transition-colors shrink-0 mt-0.5">
+                    {isSelected ? (
+                      <CheckSquare className="w-5 h-5 text-accent" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                  
+                  <div className="min-w-0 flex-1">
+                    {/* Merchant Name & Uncategorized Indicator */}
+                    <p className="text-sm font-medium text-text-primary flex items-center gap-2 truncate">
+                      <span className="truncate">{m.display}</span>
+                      {isUncategorized && <span className="w-2 h-2 rounded-full bg-warning animate-pulse shrink-0" title="Needs Customization"></span>}
+                    </p>
+                    {/* Transactions count and total spend */}
+                    <p className="text-xs text-text-muted mt-1">
+                      {m.count} txns • {formatCurrency(m.totalSpend)}
+                    </p>
+                  </div>
+                  
+                  {/* Credit/Debit Badge */}
+                  <div className="shrink-0">
+                    {isCredit ? (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-success/10 text-success border border-success/20 uppercase tracking-wide">
+                        CREDIT
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-danger/10 text-danger border border-danger/20 uppercase tracking-wide">
+                        DEBIT
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Category Selector below */}
+                <div className="mt-4 pt-3 border-t border-border/50 relative">
+                  <button 
+                    onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
+                    className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
+                  >
+                    <span className="truncate">{m.category}</span>
+                    <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
+                  </button>
+                  
+                  {activeDropdown === m.normalized && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl z-20 py-2 max-h-60 overflow-y-auto custom-scrollbar">
+                      {(Array.isArray(categories) ? categories : []).map(cat => (
+                        <div
+                          key={cat.id}
+                          className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
+                          onClick={() => {
+                            onUpdateCategory(m.normalized, cat.name);
+                            setActiveDropdown(null);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span style={{ color: cat.color }}>{cat.icon}</span>
+                            <span className="truncate">{cat.name}</span>
+                          </div>
+                          {m.category === cat.name && <Check className="w-4 h-4 text-accent" />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
     </BorderGlow>
