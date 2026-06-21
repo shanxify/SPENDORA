@@ -6,6 +6,7 @@
     { "source": "/api/stats(.*)", "destination": "/api/stats.js" },
     { "source": "/api/transactions(.*)", "destination": "/api/transactions.js" },
     { "source": "/api/upload(.*)", "destination": "/api/upload.js" },
+    { "source": "/api/feedback(.*)", "destination": "/api/feedback.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

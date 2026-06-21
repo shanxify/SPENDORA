@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ArrowDown, ArrowUp, Activity, Hash, FilterX } from 'lucide-react';
+import { ArrowDown, ArrowUp, Activity, Hash, FilterX, Mail } from 'lucide-react';
 import Client from '../api/client';
 import TopNav from '../components/Layout/TopNav';
 import StatCard from '../components/Dashboard/StatCard';
@@ -9,6 +9,7 @@ import SpendingPieChart from '../components/Charts/SpendingPieChart';
 import MonthlyBarChart from '../components/Charts/MonthlyBarChart';
 import BorderGlow from '../components/BorderGlow';
 import GlareHover from '../components/GlareHover';
+import FeedbackModal from '../components/Feedback/FeedbackModal';
 
 const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [openingBalance, setOpeningBalance] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [breakdownType, setBreakdownType] = useState('expenses'); // 'expenses' or 'income'
 
   useEffect(() => {
@@ -549,14 +551,23 @@ const Dashboard = () => {
           </div>
         )}
         {/* Footer Signature */}
-        <div className="text-center mt-12 pb-6">
+        <div className="text-center mt-12 pb-6 flex flex-col items-center gap-2">
           <p className="text-xs tracking-wide text-white/30">
             Created by{" "}
             <span className="text-purple-400 font-semibold hover:text-purple-300 transition duration-300 cursor-pointer">
               SHANX
             </span>
           </p>
+          <button
+            onClick={() => setIsFeedbackOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-purple-400 transition-colors duration-300"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Send feedback</span>
+          </button>
         </div>
+
+        <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
 
       </div>
     </div>

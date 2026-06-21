@@ -100,6 +100,11 @@ export const Client = {
   bulkUpdateMerchants: async (merchants, category) => {
     const response = await api.put('/merchants/bulk/assign', { merchants, category });
     return response.data;
+  },
+
+  sendFeedback: async (message) => {
+    const response = await api.post('/feedback', { message });
+    return response.data;
   }
 };
 
