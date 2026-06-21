@@ -51,11 +51,6 @@ const Transactions = () => {
     fetchTransactions();
   }, [searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
 
-  useEffect(() => {
-    if (currentPage > computedTotalPages) {
-      setCurrentPage(1);
-    }
-  }, [limit, computedTotalPages, currentPage]);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -188,6 +183,12 @@ const Transactions = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  useEffect(() => {
+    if (currentPage > computedTotalPages) {
+      setCurrentPage(1);
+    }
+  }, [limit, computedTotalPages, currentPage]);
 
   const isFilterActive =
     dateFrom ||
