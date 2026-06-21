@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, CheckSquare, Square, Check, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import BorderGlow from '../BorderGlow';
 
@@ -8,6 +8,21 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
   
   const [sortField, setSortField] = useState(null); // 'merchant', 'type', 'count', 'spend'
   const [sortAsc, setSortAsc] = useState(true);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [merchants, isMobile]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -48,6 +63,15 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
     });
     return list;
   }, [merchants, sortField, sortAsc]);
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(sortedMerchants.length / itemsPerPage) || 1;
+
+  const paginatedMerchants = useMemo(() => {
+    if (!isMobile) return sortedMerchants;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return sortedMerchants.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedMerchants, isMobile, currentPage]);
 
   const renderSortHeader = (field, label, align = 'left') => {
     const isCurrent = sortField === field;
@@ -250,7 +274,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
             No merchants found
           </div>
         ) : (
-          sortedMerchants.map(m => {
+          paginatedMerchants.map(m => {
             const isUncategorized = m.category === 'Uncategorized';
             const isSelected = selectedIds.has(m.normalized);
             const isCredit = m.type?.toLowerCase() === 'credit';
@@ -329,6 +353,45 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
           })
         )}
       </div>
+
+      {/* Mobile-only Pagination Controls */}
+      {isMobile && sortedMerchants.length > 0 && (
+        <div className="sm:hidden flex flex-col items-center justify-between gap-3 mt-4 px-4 pb-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
+            style={{
+              backgroundColor: currentPage === 1 ? 'transparent' : '#6C63FF',
+              color: currentPage === 1 ? '#606080' : 'white',
+              border: `1px solid ${currentPage === 1 ? '#2A2A3E' : '#6C63FF'}`,
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              opacity: currentPage === 1 ? 0.5 : 1,
+            }}
+          >
+            ← Previous
+          </button>
+
+          <p className="text-xs text-text-muted text-center order-first">
+            Page {currentPage} of {totalPages} <span className="mx-1">|</span> {sortedMerchants.length} merchants
+          </p>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
+            style={{
+              backgroundColor: currentPage === totalPages ? 'transparent' : '#6C63FF',
+              color: currentPage === totalPages ? '#606080' : 'white',
+              border: `1px solid ${currentPage === totalPages ? '#2A2A3E' : '#6C63FF'}`,
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              opacity: currentPage === totalPages ? 0.5 : 1,
+            }}
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
     </BorderGlow>
   );

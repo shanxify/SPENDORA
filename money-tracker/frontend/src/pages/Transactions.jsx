@@ -14,7 +14,15 @@ const Transactions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   // totalPages and totalCount are now derived from filteredTransactions
   const [loading, setLoading] = useState(false);
-  const LIMIT = 20;
+  const [limit, setLimit] = useState(window.innerWidth < 640 ? 10 : 20);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setLimit(window.innerWidth < 640 ? 10 : 20);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -42,6 +50,12 @@ const Transactions = () => {
   useEffect(() => {
     fetchTransactions();
   }, [searchTerm, selectedCategory, selectedType, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (currentPage > computedTotalPages) {
+      setCurrentPage(1);
+    }
+  }, [limit, computedTotalPages, currentPage]);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -168,7 +182,7 @@ const Transactions = () => {
     return true;
   });
 
-  const itemsPerPage = LIMIT;
+  const itemsPerPage = limit;
   const computedTotalPages = Math.ceil(filteredTransactions.length / itemsPerPage) || 1;
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * itemsPerPage,
