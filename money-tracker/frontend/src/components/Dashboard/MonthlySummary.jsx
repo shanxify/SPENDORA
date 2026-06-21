@@ -42,12 +42,12 @@ const MonthlySummary = ({ recentTransactions }) => {
                       <ArrowUpRight className="w-5 h-5 text-success" />
                     }
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h4 className="font-medium text-text-primary truncate max-w-[140px]">{tx.merchant}</h4>
                     <span className="text-xs text-text-muted">{formatDate(tx.date)} &bull; {tx.category}</span>
                   </div>
                 </div>
-                <div className={`font-semibold ${isDebit ? 'text-danger' : 'text-success'}`}>
+                <div className={`font-semibold whitespace-nowrap shrink-0 ml-2 ${isDebit ? 'text-danger' : 'text-success'}`}>
                   {isDebit ? '-' : '+'}{formatCurrency(tx.amount)}
                 </div>
               </div>

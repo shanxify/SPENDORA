@@ -241,27 +241,35 @@ const Dashboard = () => {
         
         {/* DATE RANGE FILTER */}
         <div className="glass-panel p-4 flex flex-wrap gap-4 items-end border-border-light shadow-xl shadow-black/50">
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-text-muted mb-1 uppercase tracking-wider">From Date</label>
-            <input 
-              type="date" 
-              className="bg-primary-bg border border-border text-text-primary px-3 py-2 rounded-lg 
-                         focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent 
-                         transition-all appearance-none"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs font-semibold text-text-muted mb-1 uppercase tracking-wider">To Date</label>
-            <input 
-              type="date" 
-              className="bg-primary-bg border border-border text-text-primary px-3 py-2 rounded-lg 
-                         focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent 
-                         transition-all appearance-none"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-            />
+          <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="flex flex-col flex-1 min-w-0">
+              <label className="text-xs font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                <span className="sm:hidden">From</span>
+                <span className="hidden sm:inline">From Date</span>
+              </label>
+              <input 
+                type="date" 
+                className="w-full bg-primary-bg border border-border text-text-primary px-3 py-2 rounded-lg 
+                           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent 
+                           transition-all appearance-none"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <label className="text-xs font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                <span className="sm:hidden">To</span>
+                <span className="hidden sm:inline">To Date</span>
+              </label>
+              <input 
+                type="date" 
+                className="w-full bg-primary-bg border border-border text-text-primary px-3 py-2 rounded-lg 
+                           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent 
+                           transition-all appearance-none"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+              />
+            </div>
           </div>
           {(fromDate || toDate) && (
             <button 
