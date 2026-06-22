@@ -11,6 +11,7 @@ const MerchantMapping = () => {
   const [merchants, setMerchants] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
   
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
@@ -62,20 +63,28 @@ const MerchantMapping = () => {
   };
 
   const handleUpdateCategory = async (normalized, categoryName) => {
+    setErrorMsg(null);
+    const previousMerchants = merchants;
+    setMerchants(prev => prev.map(m => m.normalized === normalized ? { ...m, category: categoryName } : m));
     try {
       await Client.updateMerchantCategory(normalized, categoryName);
-      setMerchants(prev => prev.map(m => m.normalized === normalized ? { ...m, category: categoryName } : m));
     } catch (error) {
       console.error("Failed to update merchant category:", error);
+      setMerchants(previousMerchants);
+      setErrorMsg("Couldn't update category. Please try again.");
     }
   };
 
   const handleBulkUpdate = async (normalizedIds, categoryName) => {
+    setErrorMsg(null);
+    const previousMerchants = merchants;
+    setMerchants(prev => prev.map(m => normalizedIds.includes(m.normalized) ? { ...m, category: categoryName } : m));
     try {
       await Client.bulkUpdateMerchants(normalizedIds, categoryName);
-      setMerchants(prev => prev.map(m => normalizedIds.includes(m.normalized) ? { ...m, category: categoryName } : m));
     } catch (error) {
       console.error("Failed to bulk update merchants:", error);
+      setMerchants(previousMerchants);
+      setErrorMsg("Couldn't update category. Please try again.");
     }
   };
 
@@ -89,6 +98,11 @@ const MerchantMapping = () => {
       />
       
       <div className="px-6 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-6 flex-1 flex flex-col animate-in fade-in duration-300">
+        {errorMsg && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            <strong>Error:</strong> {errorMsg}
+          </div>
+        )}
         
         {/* Help Banner */}
         <div className="glass-panel p-4 flex gap-3 items-start border border-accent/20 bg-[#6C63FF]/5 rounded-2xl">

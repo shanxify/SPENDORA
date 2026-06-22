@@ -50,6 +50,11 @@ module.exports = async (req, res) => {
           supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
           supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
         ]);
+        console.log('DEBUG bulk update:', { 
+          normalized, normalizedMerchant, type, category,
+          txResult: { data: txResult.data, count: txResult.count, error: txResult.error },
+          upsertResult: { data: upsertResult.data, error: upsertResult.error }
+        });
         if (txResult.error) {
           console.error('Bulk update transactions error:', txResult.error);
           return res.status(500).json({ error: txResult.error.message });
@@ -80,6 +85,11 @@ module.exports = async (req, res) => {
           supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
           supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
         ]);
+        console.log('DEBUG single update:', { 
+          normalized, normalizedMerchant, type, category,
+          txResult: { data: txResult.data, count: txResult.count, error: txResult.error },
+          upsertResult: { data: upsertResult.data, error: upsertResult.error }
+        });
         if (txResult.error) {
           console.error('Single update transactions error:', txResult.error);
           return res.status(500).json({ error: txResult.error.message });
