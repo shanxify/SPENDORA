@@ -130,6 +130,7 @@ const MerchantMapping = () => {
             categories={categories}
             onUpdateCategory={handleUpdateCategory}
             onBulkUpdate={handleBulkUpdate}
+            filters={filters}
           />
         )}
       </div>

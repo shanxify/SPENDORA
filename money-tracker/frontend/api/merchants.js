@@ -46,11 +46,19 @@ module.exports = async (req, res) => {
           normalizedMerchant = normalized.substring(0, lastUnderscore);
           type = normalized.substring(lastUnderscore + 1);
         }
-        const { data, error: txErr } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id).select();
-        if (txErr) return res.status(500).json({ error: txErr.message });
-        const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id });
-        if (upsertError) return res.status(500).json({ error: upsertError.message });
-        totalUpdated += data?.length || 0;
+        const [txResult, upsertResult] = await Promise.all([
+          supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
+          supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
+        ]);
+        if (txResult.error) {
+          console.error('Bulk update transactions error:', txResult.error);
+          return res.status(500).json({ error: txResult.error.message });
+        }
+        if (upsertResult.error) {
+          console.error('Bulk upsert merchant_map error:', upsertResult.error);
+          return res.status(500).json({ error: upsertResult.error.message });
+        }
+        totalUpdated += txResult.count || 0;
       }
       return res.json({ success: true, updatedTransactions: totalUpdated });
     }
@@ -68,11 +76,19 @@ module.exports = async (req, res) => {
           normalizedMerchant = normalized.substring(0, lastUnderscore);
           type = normalized.substring(lastUnderscore + 1);
         }
-        const { data, error } = await supabase.from('transactions').update({ category }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id).select();
-        if (error) return res.status(500).json({ error: error.message });
-        const { error: upsertError } = await supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id });
-        if (upsertError) return res.status(500).json({ error: upsertError.message });
-        return res.json({ success: true, updatedTransactions: data?.length || 0 });
+        const [txResult, upsertResult] = await Promise.all([
+          supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
+          supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
+        ]);
+        if (txResult.error) {
+          console.error('Single update transactions error:', txResult.error);
+          return res.status(500).json({ error: txResult.error.message });
+        }
+        if (upsertResult.error) {
+          console.error('Single upsert merchant_map error:', upsertResult.error);
+          return res.status(500).json({ error: upsertResult.error.message });
+        }
+        return res.json({ success: true, updatedTransactions: txResult.count || 0 });
       }
     }
 
@@ -82,7 +98,10 @@ module.exports = async (req, res) => {
       const urlObj = new URL(url, 'http://localhost');
       const search = urlObj.searchParams.get('search');
       const { data: transactions, error } = await supabase.from('transactions').select('merchant, normalizedMerchant, category, amount, type').eq('user_id', user.id);
-      if (error) return res.status(500).json({ error: error.message });
+      if (error) {
+        console.error('Fetch transactions error:', error);
+        return res.status(500).json({ error: error.message });
+      }
 
       const merchantMap = {};
       (transactions || []).forEach(t => {

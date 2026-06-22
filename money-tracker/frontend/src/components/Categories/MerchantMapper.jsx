@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, CheckSquare, Square, Check, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import BorderGlow from '../BorderGlow';
 
-const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate }) => {
+const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate, filters }) => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [activeDropdown, setActiveDropdown] = useState(null);
   
@@ -13,7 +13,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [merchants]);
+  }, [filters?.search, filters?.uncategorized]);
 
   const handleSort = (field) => {
     if (sortField === field) {
