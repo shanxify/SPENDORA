@@ -17,6 +17,13 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  const getValueTextClass = (text) => {
+    if (!text) return 'text-lg sm:text-xl font-semibold';
+    return text.length > 15 
+      ? 'text-base sm:text-lg font-semibold' 
+      : 'text-lg sm:text-xl font-semibold';
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-white">Insights</h3>
@@ -32,7 +39,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
             </div>
           </div>
           <p 
-            className="text-base sm:text-lg leading-snug font-medium text-text-primary line-clamp-2 w-full" 
+            className={`${getValueTextClass(topMerchantBySpend?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
             title={topMerchantBySpend?.display || ''}
           >
             {topMerchantBySpend?.display || '—'}
@@ -55,7 +62,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
             </div>
           </div>
           <p 
-            className="text-base sm:text-lg leading-snug font-medium text-text-primary line-clamp-2 w-full" 
+            className={`${getValueTextClass(mostFrequentMerchant?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
             title={mostFrequentMerchant?.display || ''}
           >
             {mostFrequentMerchant?.display || '—'}
@@ -78,7 +85,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
             </div>
           </div>
           <p 
-            className="text-base sm:text-lg leading-snug font-medium text-text-primary line-clamp-2 w-full" 
+            className={`${getValueTextClass(biggestExpense?.merchant)} text-text-primary line-clamp-2 leading-snug w-full`} 
             title={biggestExpense?.merchant || ''}
           >
             {biggestExpense?.merchant || '—'}
@@ -100,7 +107,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
               <Calculator className="w-4 h-4 text-success" />
             </div>
           </div>
-          <p className="text-base sm:text-lg leading-snug font-medium number-font text-text-primary truncate w-full">
+          <p className="text-lg sm:text-xl leading-snug font-semibold number-font text-text-primary truncate w-full">
             {formatCurrency(avgTransaction)}
           </p>
           <div className="text-xs text-text-muted w-full truncate">
