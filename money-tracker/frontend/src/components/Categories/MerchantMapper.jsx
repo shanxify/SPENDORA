@@ -9,20 +9,11 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
   const [sortField, setSortField] = useState(null); // 'merchant', 'type', 'count', 'spend'
   const [sortAsc, setSortAsc] = useState(true);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
     setCurrentPage(1);
-  }, [merchants, isMobile]);
+  }, [merchants]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -64,14 +55,13 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
     return list;
   }, [merchants, sortField, sortAsc]);
 
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(sortedMerchants.length / itemsPerPage) || 1;
+  const itemsPerPage = 20;
+  const computedTotalPages = Math.ceil(sortedMerchants.length / itemsPerPage) || 1;
 
   const paginatedMerchants = useMemo(() => {
-    if (!isMobile) return sortedMerchants;
     const startIndex = (currentPage - 1) * itemsPerPage;
     return sortedMerchants.slice(startIndex, startIndex + itemsPerPage);
-  }, [sortedMerchants, isMobile, currentPage]);
+  }, [sortedMerchants, currentPage]);
 
   const renderSortHeader = (field, label, align = 'left') => {
     const isCurrent = sortField === field;
@@ -192,7 +182,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
               <tr><td colSpan="6" className="py-8 text-center text-text-muted">No merchants found</td></tr>
             ) : null}
             
-            {sortedMerchants.map(m => {
+            {paginatedMerchants.map(m => {
               const isUncategorized = m.category === 'Uncategorized';
               const isSelected = selectedIds.has(m.normalized);
               
@@ -354,38 +344,38 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate 
         )}
       </div>
 
-      {/* Mobile-only Pagination Controls */}
-      {isMobile && sortedMerchants.length > 0 && (
-        <div className="sm:hidden flex flex-col items-center justify-between gap-3 mt-4 px-4 pb-4">
+      {/* Pagination Controls */}
+      {sortedMerchants.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-6 pb-6">
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
+            disabled={currentPage === 1 || sortedMerchants.length === 0}
+            className="w-full sm:w-auto px-4 sm:px-5 py-2 text-sm rounded-lg font-medium transition-colors"
             style={{
-              backgroundColor: currentPage === 1 ? 'transparent' : '#6C63FF',
-              color: currentPage === 1 ? '#606080' : 'white',
-              border: `1px solid ${currentPage === 1 ? '#2A2A3E' : '#6C63FF'}`,
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              opacity: currentPage === 1 ? 0.5 : 1,
+              backgroundColor: (currentPage === 1 || sortedMerchants.length === 0) ? 'transparent' : '#6C63FF',
+              color: (currentPage === 1 || sortedMerchants.length === 0) ? '#606080' : 'white',
+              border: `1px solid ${(currentPage === 1 || sortedMerchants.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
+              cursor: (currentPage === 1 || sortedMerchants.length === 0) ? 'not-allowed' : 'pointer',
+              opacity: (currentPage === 1 || sortedMerchants.length === 0) ? 0.5 : 1,
             }}
           >
             ← Previous
           </button>
 
-          <p className="text-xs text-text-muted text-center order-first">
-            Page {currentPage} of {totalPages} <span className="mx-1">|</span> {sortedMerchants.length} merchants
+          <p className="text-xs sm:text-sm text-text-muted text-center order-first sm:order-none">
+            Page {currentPage} of {computedTotalPages} <span className="mx-1">|</span> {sortedMerchants.length} merchants
           </p>
 
           <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, computedTotalPages))}
+            disabled={currentPage === computedTotalPages || computedTotalPages === 0 || sortedMerchants.length === 0}
+            className="w-full sm:w-auto px-4 sm:px-5 py-2 text-sm rounded-lg font-medium transition-colors"
             style={{
-              backgroundColor: currentPage === totalPages ? 'transparent' : '#6C63FF',
-              color: currentPage === totalPages ? '#606080' : 'white',
-              border: `1px solid ${currentPage === totalPages ? '#2A2A3E' : '#6C63FF'}`,
-              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-              opacity: currentPage === totalPages ? 0.5 : 1,
+              backgroundColor: (currentPage === computedTotalPages || sortedMerchants.length === 0) ? 'transparent' : '#6C63FF',
+              color: (currentPage === computedTotalPages || sortedMerchants.length === 0) ? '#606080' : 'white',
+              border: `1px solid ${(currentPage === computedTotalPages || sortedMerchants.length === 0) ? '#2A2A3E' : '#6C63FF'}`,
+              cursor: (currentPage === computedTotalPages || sortedMerchants.length === 0) ? 'not-allowed' : 'pointer',
+              opacity: (currentPage === computedTotalPages || sortedMerchants.length === 0) ? 0.5 : 1,
             }}
           >
             Next →
