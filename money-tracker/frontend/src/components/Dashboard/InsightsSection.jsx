@@ -20,10 +20,10 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
   };
 
   const getValueTextClass = (text) => {
-    if (!text) return 'text-lg sm:text-xl font-semibold';
+    if (!text) return 'text-xl sm:text-2xl font-semibold';
     return text.length > 15 
-      ? 'text-base sm:text-lg font-semibold' 
-      : 'text-lg sm:text-xl font-semibold';
+      ? 'text-lg sm:text-xl font-semibold' 
+      : 'text-xl sm:text-2xl font-semibold';
   };
 
   return (
@@ -70,7 +70,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
               >
                 {topMerchantBySpend?.display || '—'}
               </p>
-              <div className="text-xs text-text-muted w-full truncate">
+              <div className="text-sm text-text-muted w-full truncate">
                 {topMerchantBySpend 
                   ? `${formatCurrency(topMerchantBySpend.total)} total spent` 
                   : 'No data yet'}
@@ -118,7 +118,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
               >
                 {mostFrequentMerchant?.display || '—'}
               </p>
-              <div className="text-xs text-text-muted w-full truncate">
+              <div className="text-sm text-text-muted w-full truncate">
                 {mostFrequentMerchant 
                   ? `${mostFrequentMerchant.count} transactions` 
                   : 'No data yet'}
@@ -166,7 +166,7 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
               >
                 {biggestExpense?.merchant || '—'}
               </p>
-              <div className="text-xs text-text-muted w-full truncate">
+              <div className="text-sm text-text-muted w-full truncate">
                 {biggestExpense 
                   ? `${formatCurrency(biggestExpense.amount)} on ${formatDate(biggestExpense.date)}` 
                   : 'No data yet'}
@@ -208,10 +208,10 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
                   <Calculator className="w-4 h-4 text-success" />
                 </div>
               </div>
-              <p className="text-lg sm:text-xl leading-snug font-semibold number-font text-text-primary truncate w-full">
+              <p className="text-xl sm:text-2xl leading-snug font-semibold number-font text-text-primary truncate w-full">
                 {formatCurrency(avgTransaction)}
               </p>
-              <div className="text-xs text-text-muted w-full truncate">
+              <div className="text-sm text-text-muted w-full truncate">
                 across {transactionCount} transactions
               </div>
             </div>
