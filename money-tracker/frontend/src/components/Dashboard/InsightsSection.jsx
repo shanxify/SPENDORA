@@ -1,5 +1,7 @@
 import React from 'react';
 import { Crown, Repeat, Zap, Calculator } from 'lucide-react';
+import BorderGlow from '../BorderGlow';
+import GlareHover from '../GlareHover';
 
 const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpense, avgTransaction, transactionCount }) => {
   
@@ -28,92 +30,194 @@ const InsightsSection = ({ topMerchantBySpend, mostFrequentMerchant, biggestExpe
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-white">Insights</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        
         {/* Card 1: TOP MERCHANT */}
-        <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-5 flex flex-col justify-between items-center text-center h-[140px] w-full min-w-0">
-          <div className="flex items-center justify-center gap-3 w-full">
-            <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
-              TOP MERCHANT
-            </span>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-accent/10">
-              <Crown className="w-4 h-4 text-accent" />
-            </div>
-          </div>
-          <p 
-            className={`${getValueTextClass(topMerchantBySpend?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
-            title={topMerchantBySpend?.display || ''}
+        <BorderGlow
+          className="h-[140px] w-full"
+          edgeSensitivity={30}
+          glowColor="270 80 70"
+          backgroundColor="#0c0c14"
+          borderRadius={20}
+          glowRadius={30}
+          glowIntensity={0.6}
+          coneSpread={20}
+          animated={false}
+          colors={['#7c3aed']}
+        >
+          <GlareHover
+            className="rounded-[20px]"
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.1}
+            glareSize={200}
+            transitionDuration={500}
           >
-            {topMerchantBySpend?.display || '—'}
-          </p>
-          <div className="text-xs text-text-muted w-full truncate">
-            {topMerchantBySpend 
-              ? `${formatCurrency(topMerchantBySpend.total)} total spent` 
-              : 'No data yet'}
-          </div>
-        </div>
+            <div className="p-5 h-full flex flex-col justify-between items-center text-center w-full min-w-0">
+              <div className="flex items-center justify-center gap-3 w-full">
+                <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
+                  TOP MERCHANT
+                </span>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-accent/10">
+                  <Crown className="w-4 h-4 text-accent" />
+                </div>
+              </div>
+              <p 
+                className={`${getValueTextClass(topMerchantBySpend?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
+                title={topMerchantBySpend?.display || ''}
+              >
+                {topMerchantBySpend?.display || '—'}
+              </p>
+              <div className="text-xs text-text-muted w-full truncate">
+                {topMerchantBySpend 
+                  ? `${formatCurrency(topMerchantBySpend.total)} total spent` 
+                  : 'No data yet'}
+              </div>
+            </div>
+          </GlareHover>
+        </BorderGlow>
 
         {/* Card 2: MOST FREQUENT */}
-        <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-5 flex flex-col justify-between items-center text-center h-[140px] w-full min-w-0">
-          <div className="flex items-center justify-center gap-3 w-full">
-            <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
-              MOST FREQUENT
-            </span>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-accent/10">
-              <Repeat className="w-4 h-4 text-accent" />
-            </div>
-          </div>
-          <p 
-            className={`${getValueTextClass(mostFrequentMerchant?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
-            title={mostFrequentMerchant?.display || ''}
+        <BorderGlow
+          className="h-[140px] w-full"
+          edgeSensitivity={30}
+          glowColor="270 80 70"
+          backgroundColor="#0c0c14"
+          borderRadius={20}
+          glowRadius={30}
+          glowIntensity={0.6}
+          coneSpread={20}
+          animated={false}
+          colors={['#7c3aed']}
+        >
+          <GlareHover
+            className="rounded-[20px]"
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.1}
+            glareSize={200}
+            transitionDuration={500}
           >
-            {mostFrequentMerchant?.display || '—'}
-          </p>
-          <div className="text-xs text-text-muted w-full truncate">
-            {mostFrequentMerchant 
-              ? `${mostFrequentMerchant.count} transactions` 
-              : 'No data yet'}
-          </div>
-        </div>
+            <div className="p-5 h-full flex flex-col justify-between items-center text-center w-full min-w-0">
+              <div className="flex items-center justify-center gap-3 w-full">
+                <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
+                  MOST FREQUENT
+                </span>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-accent/10">
+                  <Repeat className="w-4 h-4 text-accent" />
+                </div>
+              </div>
+              <p 
+                className={`${getValueTextClass(mostFrequentMerchant?.display)} text-text-primary line-clamp-2 leading-snug w-full`} 
+                title={mostFrequentMerchant?.display || ''}
+              >
+                {mostFrequentMerchant?.display || '—'}
+              </p>
+              <div className="text-xs text-text-muted w-full truncate">
+                {mostFrequentMerchant 
+                  ? `${mostFrequentMerchant.count} transactions` 
+                  : 'No data yet'}
+              </div>
+            </div>
+          </GlareHover>
+        </BorderGlow>
 
         {/* Card 3: BIGGEST EXPENSE */}
-        <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-5 flex flex-col justify-between items-center text-center h-[140px] w-full min-w-0">
-          <div className="flex items-center justify-center gap-3 w-full">
-            <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
-              BIGGEST EXPENSE
-            </span>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-danger/10">
-              <Zap className="w-4 h-4 text-danger" />
-            </div>
-          </div>
-          <p 
-            className={`${getValueTextClass(biggestExpense?.merchant)} text-text-primary line-clamp-2 leading-snug w-full`} 
-            title={biggestExpense?.merchant || ''}
+        <BorderGlow
+          className="h-[140px] w-full"
+          edgeSensitivity={30}
+          glowColor="270 80 70"
+          backgroundColor="#0c0c14"
+          borderRadius={20}
+          glowRadius={30}
+          glowIntensity={0.6}
+          coneSpread={20}
+          animated={false}
+          colors={['#7c3aed']}
+        >
+          <GlareHover
+            className="rounded-[20px]"
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.1}
+            glareSize={200}
+            transitionDuration={500}
           >
-            {biggestExpense?.merchant || '—'}
-          </p>
-          <div className="text-xs text-text-muted w-full truncate">
-            {biggestExpense 
-              ? `${formatCurrency(biggestExpense.amount)} on ${formatDate(biggestExpense.date)}` 
-              : 'No data yet'}
-          </div>
-        </div>
+            <div className="p-5 h-full flex flex-col justify-between items-center text-center w-full min-w-0">
+              <div className="flex items-center justify-center gap-3 w-full">
+                <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
+                  BIGGEST EXPENSE
+                </span>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-danger/10">
+                  <Zap className="w-4 h-4 text-danger" />
+                </div>
+              </div>
+              <p 
+                className={`${getValueTextClass(biggestExpense?.merchant)} text-text-primary line-clamp-2 leading-snug w-full`} 
+                title={biggestExpense?.merchant || ''}
+              >
+                {biggestExpense?.merchant || '—'}
+              </p>
+              <div className="text-xs text-text-muted w-full truncate">
+                {biggestExpense 
+                  ? `${formatCurrency(biggestExpense.amount)} on ${formatDate(biggestExpense.date)}` 
+                  : 'No data yet'}
+              </div>
+            </div>
+          </GlareHover>
+        </BorderGlow>
 
         {/* Card 4: AVG TRANSACTION */}
-        <div className="bg-[#0c0c14] border border-white/10 rounded-2xl p-5 flex flex-col justify-between items-center text-center h-[140px] w-full min-w-0">
-          <div className="flex items-center justify-center gap-3 w-full">
-            <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
-              AVG TRANSACTION
-            </span>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-success/10">
-              <Calculator className="w-4 h-4 text-success" />
+        <BorderGlow
+          className="h-[140px] w-full"
+          edgeSensitivity={30}
+          glowColor="270 80 70"
+          backgroundColor="#0c0c14"
+          borderRadius={20}
+          glowRadius={30}
+          glowIntensity={0.6}
+          coneSpread={20}
+          animated={false}
+          colors={['#7c3aed']}
+        >
+          <GlareHover
+            className="rounded-[20px]"
+            width="100%"
+            height="100%"
+            background="transparent"
+            borderColor="transparent"
+            glareColor="#ffffff"
+            glareOpacity={0.1}
+            glareSize={200}
+            transitionDuration={500}
+          >
+            <div className="p-5 h-full flex flex-col justify-between items-center text-center w-full min-w-0">
+              <div className="flex items-center justify-center gap-3 w-full">
+                <span className="text-text-muted text-[11px] sm:text-xs font-medium uppercase tracking-wider pt-0.5">
+                  AVG TRANSACTION
+                </span>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-success/10">
+                  <Calculator className="w-4 h-4 text-success" />
+                </div>
+              </div>
+              <p className="text-lg sm:text-xl leading-snug font-semibold number-font text-text-primary truncate w-full">
+                {formatCurrency(avgTransaction)}
+              </p>
+              <div className="text-xs text-text-muted w-full truncate">
+                across {transactionCount} transactions
+              </div>
             </div>
-          </div>
-          <p className="text-lg sm:text-xl leading-snug font-semibold number-font text-text-primary truncate w-full">
-            {formatCurrency(avgTransaction)}
-          </p>
-          <div className="text-xs text-text-muted w-full truncate">
-            across {transactionCount} transactions
-          </div>
-        </div>
+          </GlareHover>
+        </BorderGlow>
+
       </div>
     </div>
   );
