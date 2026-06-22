@@ -5,6 +5,7 @@ import TopNav from '../components/Layout/TopNav';
 import StatCard from '../components/Dashboard/StatCard';
 import CategoryBreakdown from '../components/Dashboard/CategoryBreakdown';
 import MonthlySummary from '../components/Dashboard/MonthlySummary';
+import InsightsSection from '../components/Dashboard/InsightsSection';
 import SpendingPieChart from '../components/Charts/SpendingPieChart';
 import MonthlyBarChart from '../components/Charts/MonthlyBarChart';
 import BorderGlow from '../components/BorderGlow';
@@ -194,10 +195,34 @@ const Dashboard = () => {
       merchantMap[key].count++;
     });
 
-    const topMerchants = Object.values(merchantMap)
+    const sortedMerchants = Object.values(merchantMap)
       .map(m => ({ ...m, total: Math.round(m.total * 100) / 100 }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .sort((a, b) => b.total - a.total);
+
+    const topMerchants = sortedMerchants.slice(0, 5);
+
+    const topMerchantBySpend = sortedMerchants.length > 0
+      ? { display: sortedMerchants[0].display, total: sortedMerchants[0].total }
+      : null;
+
+    const mostFrequentMerchant = sortedMerchants.length > 0
+      ? [...sortedMerchants].sort((a, b) => {
+          if (b.count !== a.count) return b.count - a.count;
+          return b.total - a.total;
+        })[0]
+      : null;
+
+    const biggestExpenseItem = debits.length > 0
+      ? debits.reduce((max, t) => parseFloat(t.amount) > parseFloat(max.amount) ? t : max, debits[0])
+      : null;
+
+    const biggestExpense = biggestExpenseItem
+      ? { merchant: biggestExpenseItem.merchant, amount: parseFloat(biggestExpenseItem.amount), date: biggestExpenseItem.date }
+      : null;
+
+    const avgTransaction = totals.transactionCount > 0
+      ? parseFloat((totals.expenses / totals.transactionCount).toFixed(2))
+      : 0;
 
     // Recent transactions
     const recentTransactions = [...transactions]
@@ -205,7 +230,18 @@ const Dashboard = () => {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
 
-    return { totals, categoryBreakdown, incomeBreakdown, monthlyData, topMerchants, recentTransactions };
+    return { 
+      totals, 
+      categoryBreakdown, 
+      incomeBreakdown, 
+      monthlyData, 
+      topMerchants, 
+      recentTransactions, 
+      topMerchantBySpend, 
+      mostFrequentMerchant, 
+      biggestExpense, 
+      avgTransaction 
+    };
   }, [transactions, apiCategories, openingBalance]);
 
   return (
@@ -439,6 +475,14 @@ const Dashboard = () => {
                 </GlareHover>
               </BorderGlow>
             </div>
+
+            <InsightsSection 
+              topMerchantBySpend={stats.topMerchantBySpend}
+              mostFrequentMerchant={stats.mostFrequentMerchant}
+              biggestExpense={stats.biggestExpense}
+              avgTransaction={stats.avgTransaction}
+              transactionCount={stats.totals.transactionCount}
+            />
 
             {/* CHARTS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[400px]">
