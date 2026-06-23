@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
         }
         const [txResult, upsertResult] = await Promise.all([
           supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
-          supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
+          supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized' })
         ]);
         console.log('DEBUG bulk update:', { 
           normalized, normalizedMerchant, type, category,
@@ -84,7 +84,7 @@ module.exports = async (req, res) => {
         try {
           const [txResult, upsertResult] = await Promise.all([
             supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
-            supabase.from('merchant_map').upsert({ normalized, category, user_id: user.id }, { onConflict: 'normalized,user_id' })
+            supabase.from('merchant_map').upsert({ normalized, category, user_id: user.id }, { onConflict: 'normalized' })
           ]);
           console.log('SINGLE UPDATE DEBUG:', { 
             normalized, normalizedMerchant, type, category,
