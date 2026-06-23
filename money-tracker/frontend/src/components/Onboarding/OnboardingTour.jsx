@@ -4,6 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const OnboardingTour = () => {
+  // TEMPORARY: set to false before deploying to real users
+  const FORCE_TOUR_FOR_TESTING = true;
+
   const { user, markOnboardingSeen } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,7 +15,7 @@ const OnboardingTour = () => {
   const [isReplay, setIsReplay] = useState(false);
 
   useEffect(() => {
-    if (user && !user.user_metadata?.has_seen_onboarding) {
+    if (FORCE_TOUR_FOR_TESTING || (user && !user.user_metadata?.has_seen_onboarding)) {
       setRun(true);
     }
   }, [user]);
