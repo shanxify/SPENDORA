@@ -34,12 +34,18 @@ const OnboardingTour = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [isReplay, setIsReplay] = useState(false);
 
-  const waitForElementThenAdvance = (selector, nextIndex, maxAttempts = 20) => {
+  const waitForElementThenAdvance = (selector, nextIndex, maxAttempts = 30) => {
     let attempts = 0;
     const check = () => {
       attempts++;
       if (document.querySelector(selector)) {
-        setStepIndex(nextIndex);
+        const el = document.querySelector(selector);
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 || attempts >= maxAttempts) {
+          setStepIndex(nextIndex);
+        } else {
+          requestAnimationFrame(check);
+        }
       } else if (attempts < maxAttempts) {
         requestAnimationFrame(check);
       } else {
@@ -50,9 +56,22 @@ const OnboardingTour = () => {
     requestAnimationFrame(check);
   };
 
+  // Wait for initial element to render before running the tour
   useEffect(() => {
     if (FORCE_TOUR_FOR_TESTING || (user && !user.user_metadata?.has_seen_onboarding)) {
-      setRun(true);
+      let attempts = 0;
+      const check = () => {
+        attempts++;
+        if (document.querySelector('[data-tour="nav-upload"]')) {
+          setRun(true);
+        } else if (attempts < 30) {
+          requestAnimationFrame(check);
+        } else {
+          console.warn('Onboarding tour: initial target element never appeared, auto-running fallback.');
+          setRun(true);
+        }
+      };
+      requestAnimationFrame(check);
     }
   }, [user]);
 
@@ -61,10 +80,26 @@ const OnboardingTour = () => {
     window.__startOnboardingTour = () => {
       setStepIndex(0);
       setIsReplay(true);
-      setRun(true);
+      
+      // Navigate to Dashboard/Home first
+      navigate('/');
+      
+      // Wait for target to render
+      let attempts = 0;
+      const check = () => {
+        attempts++;
+        if (document.querySelector('[data-tour="nav-upload"]')) {
+          setRun(true);
+        } else if (attempts < 30) {
+          requestAnimationFrame(check);
+        } else {
+          setRun(true);
+        }
+      };
+      requestAnimationFrame(check);
     };
     return () => { delete window.__startOnboardingTour; };
-  }, []);
+  }, [navigate]);
 
   // Escape hatch to force stop the tour in case of issues
   useEffect(() => {
@@ -116,6 +151,7 @@ const OnboardingTour = () => {
       continuous
       showSkipButton
       callback={handleCallback}
+      debug={true}
       styles={{
         options: {
           primaryColor: '#a78bfa',
@@ -123,6 +159,7 @@ const OnboardingTour = () => {
           textColor: '#ffffff',
           arrowColor: '#1a1a24',
           overlayColor: 'rgba(0,0,0,0.55)',
+          zIndex: 10000,
         },
       }}
     />
