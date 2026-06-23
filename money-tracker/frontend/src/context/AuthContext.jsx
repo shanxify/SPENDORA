@@ -50,11 +50,17 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
   };
 
+  const markOnboardingSeen = async () => {
+    await supabase.auth.updateUser({ data: { has_seen_onboarding: true } });
+    setUser((prev) => prev ? { ...prev, user_metadata: { ...prev.user_metadata, has_seen_onboarding: true } } : prev);
+  };
+
   const value = {
     user,
     loading,
     signInWithGoogle,
-    signOut
+    signOut,
+    markOnboardingSeen
   };
 
   return (

@@ -66,6 +66,12 @@ const MerchantMapping = () => {
     setErrorMsg(null);
     const previousMerchants = merchants;
     setMerchants(prev => prev.map(m => m.normalized === normalized ? { ...m, category: categoryName } : m));
+    
+    // Advance the onboarding tour if it's currently waiting on this action
+    if (window.__advanceOnboardingStep) {
+      window.__advanceOnboardingStep();
+    }
+
     try {
       await Client.updateMerchantCategory(normalized, categoryName);
     } catch (error) {

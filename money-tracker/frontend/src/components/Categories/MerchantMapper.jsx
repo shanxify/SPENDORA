@@ -182,7 +182,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
               <tr><td colSpan="6" className="py-8 text-center text-text-muted">No merchants found</td></tr>
             ) : null}
             
-            {paginatedMerchants.map(m => {
+            {paginatedMerchants.map((m, idx) => {
               const isUncategorized = m.category === 'Uncategorized';
               const isSelected = selectedIds.has(m.normalized);
               
@@ -224,6 +224,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
                     <button 
                       onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
                       className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
+                      {...(idx === 0 ? { 'data-tour': 'merchant-category-dropdown' } : {})}
                     >
                       <span className="truncate">{m.category}</span>
                       <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
@@ -264,7 +265,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
             No merchants found
           </div>
         ) : (
-          paginatedMerchants.map(m => {
+          paginatedMerchants.map((m, idx) => {
             const isUncategorized = m.category === 'Uncategorized';
             const isSelected = selectedIds.has(m.normalized);
             const isCredit = m.type?.toLowerCase() === 'credit';
@@ -312,6 +313,7 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
                   <button 
                     onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
                     className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
+                    {...(idx === 0 ? { 'data-tour': 'merchant-category-dropdown' } : {})}
                   >
                     <span className="truncate">{m.category}</span>
                     <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />

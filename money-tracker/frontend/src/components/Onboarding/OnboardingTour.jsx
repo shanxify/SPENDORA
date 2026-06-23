@@ -1,0 +1,107 @@
+import React, { useState, useEffect } from 'react';
+import { Joyride, STATUS } from 'react-joyride';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const OnboardingTour = () => {
+  const { user, markOnboardingSeen } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [run, setRun] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [isReplay, setIsReplay] = useState(false);
+
+  useEffect(() => {
+    if (user && !user.user_metadata?.has_seen_onboarding) {
+      setRun(true);
+    }
+  }, [user]);
+
+  // Handle replay start from window global
+  useEffect(() => {
+    window.__startOnboardingTour = () => {
+      setStepIndex(0);
+      setIsReplay(true);
+      setRun(true);
+    };
+    return () => { delete window.__startOnboardingTour; };
+  }, []);
+
+  const steps = [
+    {
+      target: '[data-tour="nav-upload"]',
+      content: 'Start here — upload your bank statement PDF to import your transactions.',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="merchant-category-dropdown"]',
+      content: 'Now pick a category for this merchant. Go ahead — try it!',
+      disableBeacon: true,
+      hideFooter: true, // no Next button — this step is action-gated
+      spotlightClicks: true,
+    },
+    {
+      target: '[data-tour="nav-dashboard"]',
+      content: "You're all set — your Dashboard shows spending breakdown, top merchants, and trends, built automatically from your statements.",
+      disableBeacon: true,
+    },
+  ];
+
+  const handleCallback = (data) => {
+    const { status, index, action } = data;
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      setRun(false);
+      if (!isReplay) {
+        markOnboardingSeen();
+      }
+      return;
+    }
+    // Advance from step 0 to step 1 normally, navigating to Merchant Mapping
+    if (index === 0 && action === 'next') {
+      navigate('/merchants');
+      setStepIndex(1);
+    }
+    // Advance from step 1 to step 2 only happens via the manual trigger
+    // below (handleCategoryAssigned), not through Joyride's own Next button
+    if (index === 2 && action === 'next') {
+      navigate('/');
+      setStepIndex(2);
+    }
+  };
+
+  // Called externally when the user actually assigns a category during
+  // step 1 of the tour — advances the gated step programmatically
+  useEffect(() => {
+    window.__advanceOnboardingStep = () => {
+      if (run && stepIndex === 1) {
+        navigate('/');
+        setStepIndex(2);
+      }
+    };
+    return () => { delete window.__advanceOnboardingStep; };
+  }, [run, stepIndex, navigate]);
+
+  if (!run) return null;
+
+  return (
+    <Joyride
+      steps={steps}
+      run={run}
+      stepIndex={stepIndex}
+      continuous
+      showSkipButton
+      callback={handleCallback}
+      styles={{
+        options: {
+          primaryColor: '#a78bfa',
+          backgroundColor: '#1a1a24',
+          textColor: '#ffffff',
+          arrowColor: '#1a1a24',
+          overlayColor: 'rgba(0,0,0,0.55)',
+        },
+      }}
+    />
+  );
+};
+
+export default OnboardingTour;
