@@ -3,6 +3,26 @@ import { Joyride, STATUS } from 'react-joyride';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+const TOUR_STEPS = [
+  {
+    target: '[data-tour="nav-upload"]',
+    content: 'Start here — upload your bank statement PDF to import your transactions.',
+    disableBeacon: true,
+  },
+  {
+    target: '[data-tour="merchant-category-dropdown"]',
+    content: 'Now pick a category for this merchant. Go ahead — try it!',
+    disableBeacon: true,
+    hideFooter: true, // no Next button — this step is action-gated
+    spotlightClicks: true,
+  },
+  {
+    target: '[data-tour="nav-dashboard"]',
+    content: "You're all set — your Dashboard shows spending breakdown, top merchants, and trends, built automatically from your statements.",
+    disableBeacon: true,
+  },
+];
+
 const OnboardingTour = () => {
   // TEMPORARY: set to false before deploying to real users
   const FORCE_TOUR_FOR_TESTING = true;
@@ -13,6 +33,22 @@ const OnboardingTour = () => {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [isReplay, setIsReplay] = useState(false);
+
+  const waitForElementThenAdvance = (selector, nextIndex, maxAttempts = 20) => {
+    let attempts = 0;
+    const check = () => {
+      attempts++;
+      if (document.querySelector(selector)) {
+        setStepIndex(nextIndex);
+      } else if (attempts < maxAttempts) {
+        requestAnimationFrame(check);
+      } else {
+        console.warn('Onboarding tour: target element never appeared, stopping tour.');
+        setRun(false);
+      }
+    };
+    requestAnimationFrame(check);
+  };
 
   useEffect(() => {
     if (FORCE_TOUR_FOR_TESTING || (user && !user.user_metadata?.has_seen_onboarding)) {
@@ -30,25 +66,11 @@ const OnboardingTour = () => {
     return () => { delete window.__startOnboardingTour; };
   }, []);
 
-  const steps = [
-    {
-      target: '[data-tour="nav-upload"]',
-      content: 'Start here — upload your bank statement PDF to import your transactions.',
-      disableBeacon: true,
-    },
-    {
-      target: '[data-tour="merchant-category-dropdown"]',
-      content: 'Now pick a category for this merchant. Go ahead — try it!',
-      disableBeacon: true,
-      hideFooter: true, // no Next button — this step is action-gated
-      spotlightClicks: true,
-    },
-    {
-      target: '[data-tour="nav-dashboard"]',
-      content: "You're all set — your Dashboard shows spending breakdown, top merchants, and trends, built automatically from your statements.",
-      disableBeacon: true,
-    },
-  ];
+  // Escape hatch to force stop the tour in case of issues
+  useEffect(() => {
+    window.__forceStopOnboardingTour = () => setRun(false);
+    return () => { delete window.__forceStopOnboardingTour; };
+  }, []);
 
   const handleCallback = (data) => {
     const { status, index, action } = data;
@@ -62,13 +84,13 @@ const OnboardingTour = () => {
     // Advance from step 0 to step 1 normally, navigating to Merchant Mapping
     if (index === 0 && action === 'next') {
       navigate('/merchants');
-      setStepIndex(1);
+      waitForElementThenAdvance('[data-tour="merchant-category-dropdown"]', 1);
     }
     // Advance from step 1 to step 2 only happens via the manual trigger
     // below (handleCategoryAssigned), not through Joyride's own Next button
     if (index === 2 && action === 'next') {
       navigate('/');
-      setStepIndex(2);
+      waitForElementThenAdvance('[data-tour="nav-dashboard"]', 2);
     }
   };
 
@@ -78,7 +100,7 @@ const OnboardingTour = () => {
     window.__advanceOnboardingStep = () => {
       if (run && stepIndex === 1) {
         navigate('/');
-        setStepIndex(2);
+        waitForElementThenAdvance('[data-tour="nav-dashboard"]', 2);
       }
     };
     return () => { delete window.__advanceOnboardingStep; };
@@ -88,7 +110,7 @@ const OnboardingTour = () => {
 
   return (
     <Joyride
-      steps={steps}
+      steps={TOUR_STEPS}
       run={run}
       stepIndex={stepIndex}
       continuous
