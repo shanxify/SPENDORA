@@ -81,24 +81,23 @@ module.exports = async (req, res) => {
           normalizedMerchant = normalized.substring(0, lastUnderscore);
           type = normalized.substring(lastUnderscore + 1);
         }
-        const [txResult, upsertResult] = await Promise.all([
-          supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
-          supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
-        ]);
-        console.log('DEBUG single update:', { 
-          normalized, normalizedMerchant, type, category,
-          txResult: { data: txResult.data, count: txResult.count, error: txResult.error },
-          upsertResult: { data: upsertResult.data, error: upsertResult.error }
-        });
-        if (txResult.error) {
-          console.error('Single update transactions error:', txResult.error);
-          return res.status(500).json({ error: txResult.error.message });
+        try {
+          const [txResult, upsertResult] = await Promise.all([
+            supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
+            supabase.from('merchant_map').upsert({ normalized, category, user_id: user.id }, { onConflict: 'normalized,user_id' })
+          ]);
+          console.log('SINGLE UPDATE DEBUG:', { 
+            normalized, normalizedMerchant, type, category,
+            txError: txResult.error, txCount: txResult.count,
+            upsertError: upsertResult.error, upsertData: upsertResult.data
+          });
+          if (txResult.error) return res.status(500).json({ error: txResult.error.message, detail: txResult.error });
+          if (upsertResult.error) return res.status(500).json({ error: upsertResult.error.message, detail: upsertResult.error });
+          return res.json({ success: true, updatedTransactions: txResult.count || 0 });
+        } catch (err) {
+          console.error('SINGLE UPDATE EXCEPTION:', err);
+          return res.status(500).json({ error: err.message });
         }
-        if (upsertResult.error) {
-          console.error('Single upsert merchant_map error:', upsertResult.error);
-          return res.status(500).json({ error: upsertResult.error.message });
-        }
-        return res.json({ success: true, updatedTransactions: txResult.count || 0 });
       }
     }
 
