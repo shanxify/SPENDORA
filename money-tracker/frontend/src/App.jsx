@@ -60,9 +60,8 @@ function AppContent() {
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <Router>
-        {/* TEMPORARILY DISABLED — debugging freeze issue
-        <OnboardingTour />
-        */}
+        {/* TEMPORARILY DISABLED — debugging freeze issue in prod */}
+        {process.env.NODE_ENV === 'development' && <OnboardingTour />}
         <div className="relative min-h-screen bg-[#060010]">
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <SoftAurora
