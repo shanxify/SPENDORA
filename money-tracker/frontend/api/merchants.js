@@ -46,6 +46,9 @@ module.exports = async (req, res) => {
           normalizedMerchant = normalized.substring(0, lastUnderscore);
           type = normalized.substring(lastUnderscore + 1);
         }
+        if (type === 'credit') {
+          return res.status(400).json({ error: "Income transactions cannot be recategorized" });
+        }
         const [txResult, upsertResult] = await Promise.all([
           supabase.from('transactions').update({ category }, { count: 'exact' }).eq('normalizedMerchant', normalizedMerchant).eq('type', type).eq('user_id', user.id),
           supabase.from('merchant_map').upsert({ normalized: normalized, category: category, user_id: user.id }, { onConflict: 'normalized,user_id' })
@@ -80,6 +83,9 @@ module.exports = async (req, res) => {
         if (lastUnderscore !== -1) {
           normalizedMerchant = normalized.substring(0, lastUnderscore);
           type = normalized.substring(lastUnderscore + 1);
+        }
+        if (type === 'credit') {
+          return res.status(400).json({ error: "Income transactions cannot be recategorized" });
         }
         try {
           const [txResult, upsertResult] = await Promise.all([

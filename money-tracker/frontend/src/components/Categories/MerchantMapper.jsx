@@ -221,33 +221,41 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
                     {formatCurrency(m.totalSpend)}
                   </td>
                   <td className="py-4 px-6 relative w-64">
-                    <button 
-                      onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
-                      className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
-                    >
-                      <span className="truncate">{m.category}</span>
-                      <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
-                    </button>
-                    
-                    {activeDropdown === m.normalized && (
-                      <div className="absolute top-full left-6 mt-1 w-[calc(100%-3rem)] bg-card border border-border rounded-xl shadow-xl z-20 mx-auto py-2 max-h-60 overflow-y-auto custom-scrollbar">
-                        {(Array.isArray(categories) ? categories : []).map(cat => (
-                          <div
-                            key={cat.id}
-                            className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
-                            onClick={() => {
-                              onUpdateCategory(m.normalized, cat.name);
-                              setActiveDropdown(null);
-                            }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span style={{ color: cat.color }}>{cat.icon}</span>
-                              <span className="truncate">{cat.name}</span>
-                            </div>
-                            {m.category === cat.name && <Check className="w-4 h-4 text-accent" />}
+                    {m.type?.toLowerCase() === 'credit' ? (
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm bg-success/10 text-success border border-success/20 font-medium">
+                        Income
+                      </span>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
+                          className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
+                        >
+                          <span className="truncate">{m.category}</span>
+                          <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
+                        </button>
+                        
+                        {activeDropdown === m.normalized && (
+                          <div className="absolute top-full left-6 mt-1 w-[calc(100%-3rem)] bg-card border border-border rounded-xl shadow-xl z-20 mx-auto py-2 max-h-60 overflow-y-auto custom-scrollbar">
+                            {(Array.isArray(categories) ? categories : []).map(cat => (
+                              <div
+                                key={cat.id}
+                                className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
+                                onClick={() => {
+                                  onUpdateCategory(m.normalized, cat.name);
+                                  setActiveDropdown(null);
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span style={{ color: cat.color }}>{cat.icon}</span>
+                                  <span className="truncate">{cat.name}</span>
+                                </div>
+                                {m.category === cat.name && <Check className="w-4 h-4 text-accent" />}
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
@@ -309,33 +317,43 @@ const MerchantMapper = ({ merchants, categories, onUpdateCategory, onBulkUpdate,
                 
                 {/* Category Selector below */}
                 <div className="mt-4 pt-3 border-t border-border/50 relative">
-                  <button 
-                    onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
-                    className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
-                  >
-                    <span className="truncate">{m.category}</span>
-                    <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
-                  </button>
-                  
-                  {activeDropdown === m.normalized && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl z-20 py-2 max-h-60 overflow-y-auto custom-scrollbar">
-                      {(Array.isArray(categories) ? categories : []).map(cat => (
-                        <div
-                          key={cat.id}
-                          className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
-                          onClick={() => {
-                            onUpdateCategory(m.normalized, cat.name);
-                            setActiveDropdown(null);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span style={{ color: cat.color }}>{cat.icon}</span>
-                            <span className="truncate">{cat.name}</span>
-                          </div>
-                          {m.category === cat.name && <Check className="w-4 h-4 text-accent" />}
-                        </div>
-                      ))}
+                  {isCredit ? (
+                    <div className="w-full flex justify-start">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm bg-success/10 text-success border border-success/20 font-medium">
+                        Income
+                      </span>
                     </div>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => setActiveDropdown(activeDropdown === m.normalized ? null : m.normalized)}
+                        className={`flex items-center gap-2 px-3 py-1.5 w-full justify-between hover:bg-border rounded-lg text-sm border transition-colors ${isUncategorized ? 'bg-warning/10 border-warning/30 text-warning-light' : 'bg-secondary-bg border-border text-text-primary'}`}
+                      >
+                        <span className="truncate">{m.category}</span>
+                        <ChevronDown className="w-4 h-4 opacity-70 shrink-0" />
+                      </button>
+                      
+                      {activeDropdown === m.normalized && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-xl z-20 py-2 max-h-60 overflow-y-auto custom-scrollbar">
+                          {(Array.isArray(categories) ? categories : []).map(cat => (
+                            <div
+                              key={cat.id}
+                              className={`px-4 py-2 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary-bg transition-colors ${m.category === cat.name ? 'text-accent font-medium bg-accent/5' : 'text-text-primary'}`}
+                              onClick={() => {
+                                onUpdateCategory(m.normalized, cat.name);
+                                setActiveDropdown(null);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <span style={{ color: cat.color }}>{cat.icon}</span>
+                                <span className="truncate">{cat.name}</span>
+                              </div>
+                              {m.category === cat.name && <Check className="w-4 h-4 text-accent" />}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
