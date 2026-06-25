@@ -7,6 +7,7 @@
     "build": "cd frontend && npm run build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "playwright": "^1.61.1"
   }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp, X, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -88,7 +88,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                     : 'text-text-muted hover:bg-card hover:text-text-primary'
                 }`
               }
-              data-tour={link.name === 'Upload' ? 'nav-upload' : link.name === 'Dashboard' ? 'nav-dashboard' : undefined}
             >
               <Icon
                 className="w-5 h-5 transition-colors"
@@ -159,18 +158,6 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <div className="flex items-center justify-between text-text-muted text-sm px-2 pt-2">
           <span>Version {version}</span>
-          <button
-            onClick={() => {
-              if (window.__startOnboardingTour) {
-                window.__startOnboardingTour();
-              }
-            }}
-            title="Start Onboarding Tour"
-            className="p-1.5 hover:text-white hover:bg-card rounded-lg transition-colors border border-transparent hover:border-white/5 flex items-center justify-center"
-            aria-label="Restart onboarding tour"
-          >
-            <HelpCircle className="w-4 h-4 text-text-muted hover:text-text-primary" />
-          </button>
         </div>
       </div>
     </div>
