@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { LayoutDashboard, Upload, ArrowLeftRight, Tags, Store, LogOut, ChevronDown, ChevronUp, X, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -158,6 +158,18 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         <div className="flex items-center justify-between text-text-muted text-sm px-2 pt-2">
           <span>Version {version}</span>
+          <button
+            onClick={() => {
+              if (window.showIntroVideo) {
+                window.showIntroVideo();
+              }
+            }}
+            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-[#12121c] rounded-xl border border-white/5 hover:border-white/10 transition-all duration-200"
+            title="Watch Walkthrough"
+            aria-label="Watch Walkthrough"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

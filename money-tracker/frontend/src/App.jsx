@@ -12,6 +12,12 @@ import Login from './pages/Login';
 import SoftAurora from './components/SoftAurora';
 import IntroLoader from './components/IntroLoader';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import DemoLayout from './pages/demo/DemoLayout';
+import DemoUpload from './pages/demo/DemoUpload';
+import DemoMerchants from './pages/demo/DemoMerchants';
+import DemoDashboard from './pages/demo/DemoDashboard';
+import { DemoProvider } from './context/DemoContext';
+import IntroVideoModal from './components/Onboarding/IntroVideoModal';
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
@@ -21,6 +27,24 @@ function AppContent() {
   // Show intro loader first (existing behavior — keep this)
   if (introLoading) {
     return <IntroLoader onFinish={() => setIntroLoading(false)} />;
+  }
+
+  const isDemoRoute = window.location.pathname.startsWith('/demo');
+  if (isDemoRoute) {
+    return (
+      <DemoProvider>
+        <Router>
+          <DemoLayout>
+            <Routes>
+              <Route path="/demo" element={<Navigate to="/demo/upload" replace />} />
+              <Route path="/demo/upload"    element={<DemoUpload />} />
+              <Route path="/demo/merchants" element={<DemoMerchants />} />
+              <Route path="/demo/dashboard" element={<DemoDashboard />} />
+            </Routes>
+          </DemoLayout>
+        </Router>
+      </DemoProvider>
+    );
   }
 
   // Wait for auth check to complete
@@ -60,6 +84,7 @@ function AppContent() {
     >
       <Router>
         <div className="relative min-h-screen bg-[#060010]">
+          <IntroVideoModal />
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <SoftAurora
               speed={0.6}

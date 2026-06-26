@@ -47,14 +47,21 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
+    sessionStorage.removeItem('has_seen_intro_session');
     await supabase.auth.signOut();
+  };
+
+  const markIntroVideoSeen = async () => {
+    await supabase.auth.updateUser({ data: { has_seen_intro_video: true } });
+    setUser((prev) => prev ? { ...prev, user_metadata: { ...prev.user_metadata, has_seen_intro_video: true } } : prev);
   };
 
   const value = {
     user,
     loading,
     signInWithGoogle,
-    signOut
+    signOut,
+    markIntroVideoSeen
   };
 
   return (
