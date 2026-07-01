@@ -35,8 +35,8 @@ const MonthlySummary = ({ recentTransactions }) => {
             
             return (
               <div key={tx.id} className="flex justify-between items-center p-3 rounded-xl bg-secondary-bg border border-border hover:border-border-light transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDebit ? 'bg-danger/10' : 'bg-success/10'}`}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDebit ? 'bg-danger/10' : 'bg-success/10'} shrink-0`}>
                     {isDebit ? 
                       <ArrowDownRight className="w-5 h-5 text-danger" /> : 
                       <ArrowUpRight className="w-5 h-5 text-success" />
@@ -44,7 +44,7 @@ const MonthlySummary = ({ recentTransactions }) => {
                   </div>
                   <div className="min-w-0">
                     <h4 className="font-medium text-text-primary truncate max-w-[140px]">{tx.merchant}</h4>
-                    <span className="text-xs text-text-muted">{formatDate(tx.date)} &bull; {tx.category}</span>
+                    <span className="text-xs text-text-muted block truncate">{formatDate(tx.date)} &bull; {tx.category}</span>
                   </div>
                 </div>
                 <div className={`font-semibold whitespace-nowrap shrink-0 ml-2 ${isDebit ? 'text-danger' : 'text-success'}`}>
